@@ -1,0 +1,84 @@
+{
+  "realm": "mini-project",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "mini-client",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "http://localhost:3000",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:3000/",
+        "http://localhost:3001/*",
+        "http://localhost:3001/",
+        "http://localhost:8200/*",
+        "http://127.0.0.1:5173/*",
+        "http://localhost:5173/*",
+        "https://oauth.pstmn.io/v1/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:8200",
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+        "*"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:3001/*##http://localhost:3000/##http://localhost:3001/"
+      }
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "Student",
+        "description": "Student role"
+      },
+      {
+        "name": "Admin",
+        "description": "Administrator role"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "student",
+      "enabled": true,
+      "email": "student@example.com",
+      "firstName": "Test",
+      "lastName": "Student",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["Student"]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@example.com",
+      "firstName": "Test",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["Admin", "Student"]
+    }
+  ]
+}
+

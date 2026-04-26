@@ -1,0 +1,110 @@
+{
+  "health": {
+    "Eureka (Discovery)": {
+      "status": "UP",
+      "http_code": 200,
+      "latency_ms": 58.02
+    },
+    "API Gateway": {
+      "status": "UP",
+      "http_code": 401,
+      "latency_ms": 66.55
+    },
+    "User Service": {
+      "status": "UP",
+      "http_code": 401,
+      "latency_ms": 29.02
+    },
+    "Experience Service": {
+      "status": "UP",
+      "http_code": 401,
+      "latency_ms": 59.2
+    },
+    "Resume Service": {
+      "status": "UP",
+      "http_code": 200,
+      "latency_ms": 2062.28
+    }
+  },
+  "auth_latency_ms": 214.5,
+  "latency": {
+    "GET /api/users/me": {
+      "avg_ms": 30.58,
+      "min_ms": 15.17,
+      "max_ms": 103.77,
+      "p95_ms": 46.2,
+      "success_rate": "100%"
+    },
+    "GET /api/experience/companies": {
+      "avg_ms": 13.64,
+      "min_ms": 2.62,
+      "max_ms": 92.12,
+      "p95_ms": 27.13,
+      "success_rate": "0%"
+    },
+    "GET /api/experience/company/Google": {
+      "avg_ms": 14.41,
+      "min_ms": 2.51,
+      "max_ms": 29.26,
+      "p95_ms": 27.28,
+      "success_rate": "0%"
+    },
+    "GET Eureka apps": {
+      "avg_ms": 10.93,
+      "min_ms": 1.94,
+      "max_ms": 28.26,
+      "p95_ms": 27.18,
+      "success_rate": "100%"
+    },
+    "GET Resume Service /docs": {
+      "avg_ms": 2051.34,
+      "min_ms": 2026.34,
+      "max_ms": 2080.0,
+      "p95_ms": 2071.65,
+      "success_rate": "100%"
+    }
+  },
+  "load_test": {
+    "url": "http://localhost:8100/eureka/apps",
+    "total_requests": 500,
+    "workers": 20,
+    "success": 500,
+    "success_rate_pct": 100,
+    "throughput_rps": 583.4,
+    "avg_latency_ms": 29.98,
+    "p99_latency_ms": 50.29,
+    "total_elapsed_ms": 857
+  },
+  "resume_pipeline": {
+    "upload_ms": 2193.01,
+    "processing_ms": 3103,
+    "total_pipeline_ms": 5296,
+    "top_nlp_relevance_pct": 60.5,
+    "avg_nlp_relevance_pct": 40.0,
+    "matches": [
+      {
+        "company": "Meta",
+        "score": 0.6046071201562881
+      },
+      {
+        "company": "Google",
+        "score": 0.48578072180513476
+      },
+      {
+        "company": "Amazon",
+        "score": 0.10894453525543213
+      }
+    ],
+    "status": "success"
+  },
+  "db_speed": {
+    "mongodb_write_avg_ms": 39.44,
+    "mongodb_read_avg_ms": 9.56
+  },
+  "eureka_services": [
+    "API-GATEWAY",
+    "EXPERIENCE-SERVICE",
+    "NOTIFICATION-SERVICE",
+    "USER-SERVICE"
+  ]
+}

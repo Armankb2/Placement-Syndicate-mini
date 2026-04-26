@@ -1,0 +1,82 @@
+========================================================================
+🚀 PLACEMENT SYNDICATE - THE NLP ARCHITECTURE EXPLAINED
+========================================================================
+
+Greetings! This document explains the "Brain" of your Resume Advisor. 
+It’s designed to help you understand how an AI can "read" a resume and 
+provide actual career advice.
+
+-----------------------------------------------------------
+1. THE HYBRID TEAM (WHY TWO STRATEGIES?)
+-----------------------------------------------------------
+When you search for something, you usually want two things:
+A. Direct Keywords: (e.g., "I need a 'Java' developer.")
+B. Conceptual Context: (e.g., "I need someone who 'leads large projects'.")
+
+Our system uses a HYBRID approach to satisfy both:
+- BM25: The Keyword Specialist. It ensures "Java" means "Java".
+- Sentence Transformers: The Context Specialist. It ensures "Building 
+  Backends" means "Software Engineering".
+
+-----------------------------------------------------------
+2. THE CONTEXT SPECIALIST: SENTENCE TRANSFORMERS
+-----------------------------------------------------------
+How does a computer understand that "Lead Developer" and 
+"Engineering Manager" are almost the same thing?
+
+STEP A: EMBEDDING (THE MATH OF IDEAS)
+Every sentence you write is turned into a "Vector". A Vector is 
+just a long list of 384 numbers. These numbers represent the 
+"DNA" of the idea.
+
+STEP B: THE 384-DIMENSIONAL SPACE
+Imagine a giant map. 
+- "Apple" (the fruit) is at coordinates (2, 5).
+- "Orange" is at (2.1, 5.1). They are very close on the map!
+- "Computer" is at (50, 90). It's very far away.
+
+Our model (all-MiniLM-L6-v2) has 384 different "dimensions" 
+on its map! It maps every professional skill, role, and 
+project into this massive coordinate system.
+
+STEP C: COSINE SIMILARITY (MEASURING CLOSENESS)
+When you upload a resume, the AI:
+1. Turns your resume into a math coordinate (Vector).
+2. Looks at all the interview experiences in MongoDB.
+3. Calculates the "Distance" between your resume and those records.
+4. The records with the smallest distance (highest similarity) 
+   are your matches!
+
+-----------------------------------------------------------
+3. WHY THIS IS "INTELLIGENT"
+-----------------------------------------------------------
+- SYNONYM AWARE: The AI doesn't care if you say "Node.js" or 
+  "Server-side Javascript"—it knows they live in the same 
+  neighborhood on the map.
+- CONTEXTUAL: It understands that "Managing people" in a cafe 
+  is different from "Managing people" in a tech company.
+- SELF-REWARDING: We combine the Lexical score and the Semantic 
+  score. If both "experts" agree on a match, we give it a massive 
+  "Reward" and rank it #1.
+
+-----------------------------------------------------------
+4. CONCLUSION
+-----------------------------------------------------------
+This architecture makes your project "State-of-the-Art". 
+Traditional systems will miss your profile if you don't use 
+the exact right words; YOUR SYNDICATE will find it because 
+it understands the true VALUE of your work.
+
+Generated for: Placement Syndicate
+Author: Antigravity AI
+========================================================================
+
+
+
+IMPORTANT:
+
+1. Extraction: The user uploads their PDF/DOCX.
+2. SRLM / Hybrid Search: The "Specialist" (Your local NLP setup with all-MiniLM-L6-v2 and BM25) quickly analyzes the math/vectors and finds the Top 3 interviews from MongoDB. This output is very raw (just scores and company data).
+3. LLM Coaching: Instead of just showing that raw data, we bundle the user's resume text and the top 3 matches together and send them to the Groq LLM.
+4. Storage: The LLM sends back a beautiful "Gap Analysis Report." We take everything—the AI's generated report, along with the original top matched companies and their scores—and package it into one single document.
+5. MongoDB Persistence: We save that complete package into the resume_feedback collection in MongoDB.

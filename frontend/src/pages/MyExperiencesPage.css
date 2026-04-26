@@ -1,0 +1,109 @@
+/* MyExperiencesPage.css - Placement Syndicate (Premium Profile) */
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-top: 8px;
+  margin-bottom: 40px;
+}
+
+.company-info {
+  font-size: 1rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin: 4px 0 0 0;
+}
+
+.truncate-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.error-card {
+  padding: 40px;
+  text-align: center;
+}
+
+.error-card .icon {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.empty-state {
+  padding: 100px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty-state .icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 24px;
+}
+
+.empty-state p {
+  font-size: 1.2rem;
+  margin-bottom: 32px;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 14px 32px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #000;
+  font-weight: 700;
+  box-shadow: 0 10px 20px -10px var(--primary);
+}
+
+.btn-small {
+  margin-top: 15px;
+  padding: 8px 20px;
+}
+
+.meta-info {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.content-section {
+  margin-bottom: 15px;
+}
+
+.content-section h4 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.card-footer {
+  margin-top: 25px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.delete-btn {
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  color: #f43f5e;
+  font-size: 0.85rem;
+  padding: 8px 20px;
+  border-radius: 10px;
+  transition: var(--transition);
+}
+
+.delete-btn:hover {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.3);
+  transform: translateY(-2px);
+}
