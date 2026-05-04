@@ -50,4 +50,14 @@ Thumbs.db
 # Spring Boot
 HELP.md
 
-.envresume-service/.env
+# Resume uploads (user files — never commit personal data)
+resume-service/uploads/
+
+# Python cache
+resume-service/__pycache__/
+*.pyc
+
+# Environment / secrets
+.env
+resume-service/.env
+

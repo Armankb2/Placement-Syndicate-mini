@@ -24,3 +24,14 @@ export const uploadResume = (file) => {
 export const getResumeFeedback = (filename) => {
   return api.get(`/resume/feedback/${encodeURIComponent(filename)}`);
 };
+
+/**
+ * Finds companies with similar interview patterns using the AI similarity engine.
+ * @param {string} companyName - The company to find similar companies for.
+ * @param {number} limit - Max number of similar companies to return (default 3).
+ * @returns {Promise} - { targetCompany, similar: [{companyName, similarityScore}] }
+ */
+export const getSimilarCompanies = (companyName, limit = 3) => {
+  return api.get(`/resume/similar/${encodeURIComponent(companyName)}?limit=${limit}`);
+};
+
