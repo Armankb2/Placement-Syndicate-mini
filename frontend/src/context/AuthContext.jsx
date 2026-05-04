@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, useRef } from "react";
 import keycloak from "../keycloak";
 
@@ -15,9 +16,9 @@ export function AuthProvider({ children }) {
     didInit.current = true;
 
     const redirectUri = window.location.origin + "/";
-    console.log("🔐 Keycloak init with redirect URI:", redirectUri);
-    console.log("🔐 Keycloak realm:", keycloak.realm);
-    console.log("🔐 Keycloak clientId:", keycloak.clientId);
+    console.log("Keycloak init with redirect URI:", redirectUri);
+    console.log("Keycloak realm:", keycloak.realm);
+    console.log("Keycloak clientId:", keycloak.clientId);
 
     keycloak
       .init({
@@ -26,7 +27,7 @@ export function AuthProvider({ children }) {
         redirectUri: redirectUri,
       })
       .then((auth) => {
-        console.log("✅ Keycloak authenticated:", auth);
+        console.log("Keycloak authenticated:", auth);
         setAuthenticated(auth);
         setToken(keycloak.token);
         setUser({
@@ -50,7 +51,7 @@ export function AuthProvider({ children }) {
         }, 30000);
       })
       .catch((err) => {
-        console.error("❌ Keycloak init failed:", err);
+        console.error("Keycloak init failed:", err);
         console.error("Full error:", JSON.stringify(err, null, 2));
         setLoading(false);
       });

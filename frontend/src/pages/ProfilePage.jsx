@@ -16,13 +16,13 @@ export default function ProfilePage() {
 
   if (loading) return <div className="loader">Loading your workspace...</div>;
   if (error) return <div className="error-message">Error: {error}</div>;
-  if (!profile) return <div className="error-message">No profile profile found.</div>;
+  if (!profile) return <div className="error-message">No profile found.</div>;
 
   return (
     <div className="container animate-up">
       <div className="profile-dashboard glass">
         <header className="profile-header">
-          <div className="avatar-large">{profile.firstname[0]}</div>
+          <div className="avatar-large">{profile.firstname?.[0]}</div>
           <div className="header-info">
             <h1>{profile.firstname} {profile.lastname}</h1>
             <p className="role-tag">{profile.role}</p>

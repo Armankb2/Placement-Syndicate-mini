@@ -22,7 +22,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Navbar />
-      <div style={{ padding: "0 20px" }}>
+      <main className="app-shell">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -39,7 +39,7 @@ export default function App() {
             }
           />
         </Routes>
-      </div>
+      </main>
     </BrowserRouter>
   );
 }

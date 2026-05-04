@@ -127,12 +127,20 @@ async def get_similar_companies(company_name: str, limit: int = 3):
             name = exp.get("companyName", "").strip()
             if not name:
                 continue
+            # Extract round texts
+            rounds_text = ""
+            if "rounds" in exp and isinstance(exp["rounds"], list):
+                for r in exp["rounds"]:
+                    if isinstance(r, dict):
+                        rounds_text += " ".join([str(v) for k, v in r.items() if k != "_class"]) + " "
+
             # Concatenate all text fields that describe the interview
             profile_text = " ".join(filter(None, [
                 exp.get("role", ""),
                 exp.get("quetions", ""),
                 exp.get("tips", ""),
-                str(exp.get("difficultyLevel", ""))
+                str(exp.get("difficultyLevel", "")),
+                rounds_text
             ]))
             company_profiles[name].append(profile_text)
 

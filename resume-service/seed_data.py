@@ -9,6 +9,7 @@ def seed_data():
 
     # This metadata is CRITICAL for Spring Data MongoDB to map the documents back to Java objects
     JAVA_CLASS_META = "com.mini.experience_service.Model.Experience"
+    ROUND_CLASS_META = "com.mini.experience_service.Model.Round"
 
     samples = [
         {
@@ -268,6 +269,11 @@ def seed_data():
             ]
         }
     ]
+
+    for sample in samples:
+        if "rounds" in sample:
+            for r in sample["rounds"]:
+                r["_class"] = ROUND_CLASS_META
 
     print(f"🌱 Seeding MongoDB with {len(samples)} highly detailed, multi-round experiences...")
     collection.delete_many({}) # Clear existing

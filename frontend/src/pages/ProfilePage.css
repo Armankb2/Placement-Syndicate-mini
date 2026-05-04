@@ -1,127 +1,128 @@
-/* ProfilePage.css - Placement Syndicate */
-
 .profile-dashboard {
-  padding: 60px;
-  max-width: 900px;
+  width: min(940px, 100%);
   margin: 0 auto;
+  padding: 34px;
 }
 
 .profile-header {
   display: flex;
   align-items: center;
-  gap: 40px;
-  margin-bottom: 60px;
-  padding-bottom: 40px;
-  border-bottom: 1px solid var(--glass-border);
+  gap: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--border);
 }
 
 .avatar-large {
-  width: 120px;
-  height: 120px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  border-radius: 30px;
   display: flex;
-  justify-content: center;
+  width: 96px;
+  height: 96px;
+  flex: 0 0 auto;
   align-items: center;
-  font-size: 3.5rem;
-  font-weight: 800;
-  color: #000;
-  box-shadow: 0 16px 32px -8px rgba(79, 172, 254, 0.4);
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  background: var(--primary);
+  color: #fff;
+  font-size: 2.6rem;
+  font-weight: 900;
+  box-shadow: 0 16px 32px rgba(20, 99, 255, 0.18);
 }
 
 .header-info h1 {
-  font-size: 2.5rem;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  line-height: 1.05;
 }
 
 .role-tag {
-  display: inline-block;
-  padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--primary);
+  display: inline-flex;
+  padding: 6px 10px;
+  border: 1px solid #c7d8ff;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-size: 0.82rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .profile-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 22px;
+}
+
+.profile-section {
+  min-width: 0;
 }
 
 .profile-section h3 {
-  font-size: 1.1rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-secondary);
-  margin-bottom: 24px;
+  margin: 0 0 16px;
+  color: var(--text);
+  font-size: 1rem;
 }
 
 .detail-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .detail-row .label {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .detail-row .value {
-  color: var(--text-primary);
-  font-weight: 600;
+  min-width: 0;
+  color: var(--text);
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .stat-card {
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-}
-
-.stat-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateY(-4px);
+  display: grid;
+  min-height: 116px;
+  place-items: center;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+  text-align: center;
 }
 
 .stat-val {
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: var(--primary);
-  margin-bottom: 4px;
+  color: var(--primary-dark);
+  font-size: 2rem;
+  font-weight: 900;
 }
 
 .stat-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
-@media (max-width: 768px) {
-  .profile-grid {
+@media (max-width: 760px) {
+  .profile-header,
+  .profile-grid,
+  .detail-row {
     grid-template-columns: 1fr;
   }
+
   .profile-header {
-    flex-direction: column;
+    display: grid;
     text-align: center;
-    gap: 20px;
+    justify-items: center;
   }
 }

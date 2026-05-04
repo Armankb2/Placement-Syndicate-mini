@@ -52,18 +52,21 @@ export default function AddExperiencePage() {
   return (
     <div className="container animate-up">
       <div className="form-container glass">
-        <h2 className="form-title">Share Your <span>Journey</span></h2>
-        <p className="form-subtitle">Help others by documenting your interview experience.</p>
-        
-        {error && <div className="error-message">{error}</div>}
-        
+        <div className="form-heading">
+          <span className="form-step">Contribution form</span>
+          <h2 className="form-title">Share Your <span>Journey</span></h2>
+          <p className="form-subtitle">Document the rounds, questions, and prep signals other candidates need.</p>
+        </div>
+
+        {error && <div className="error-message inline-error">{error}</div>}
+
         <form onSubmit={handleSubmit} className="entry-form">
           <div className="form-grid">
             <div className="input-group">
               <label>Company Name</label>
               <input name="companyName" placeholder="e.g. Google" value={form.companyName} onChange={handleChange} required />
             </div>
-            
+
             <div className="input-group">
               <label>Role</label>
               <input name="role" placeholder="e.g. SDE-1" value={form.role} onChange={handleChange} required />
@@ -96,21 +99,25 @@ export default function AddExperiencePage() {
 
           <div className="rounds-container">
             <div className="section-header">
-              <h3>Interview Rounds</h3>
-              <button type="button" className="btn-small" onClick={addRound}>+ Add Round</button>
+              <div>
+                <h3>Interview Rounds</h3>
+                <p>Add each stage so readers can scan the process quickly.</p>
+              </div>
+              <button type="button" className="btn-small" onClick={addRound}>Add round</button>
             </div>
-            
+
             {form.rounds.map((round, i) => (
-              <div key={i} className="round-item glass">
+              <div key={i} className="round-item">
                 <div className="round-header">
+                  <span className="round-index">{i + 1}</span>
                   <input
-                    placeholder="Round Name (e.g. Coding)"
+                    placeholder="Round name, e.g. Coding"
                     value={round.roundName}
                     onChange={(e) => handleRoundChange(i, "roundName", e.target.value)}
                     required
                   />
                   {form.rounds.length > 1 && (
-                    <button type="button" className="remove-btn" onClick={() => removeRound(i)}>×</button>
+                    <button type="button" className="remove-btn" onClick={() => removeRound(i)}>Remove</button>
                   )}
                 </div>
                 <textarea
@@ -124,7 +131,7 @@ export default function AddExperiencePage() {
           </div>
 
           <button type="submit" className="btn-primary full-width" disabled={submitting}>
-            {submitting ? "Submitting..." : "Publish Experience"}
+            {submitting ? "Publishing..." : "Publish Experience"}
           </button>
         </form>
       </div>

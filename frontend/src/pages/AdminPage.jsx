@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { registerUser, getUserById } from "../services/api";
+import "./AdminPage.css";
 
 export default function AdminPage() {
-  // ─── Register User ───────────────────────────
   const [regForm, setRegForm] = useState({
     firstname: "",
     lastname: "",
@@ -12,6 +12,10 @@ export default function AdminPage() {
   });
   const [regResult, setRegResult] = useState(null);
   const [regError, setRegError] = useState(null);
+
+  const [lookupId, setLookupId] = useState("");
+  const [lookupResult, setLookupResult] = useState(null);
+  const [lookupError, setLookupError] = useState(null);
 
   const handleRegChange = (e) =>
     setRegForm({ ...regForm, [e.target.name]: e.target.value });
@@ -25,11 +29,6 @@ export default function AdminPage() {
       .catch((err) => setRegError(err.response?.data?.message || err.message));
   };
 
-  // ─── Lookup User ─────────────────────────────
-  const [lookupId, setLookupId] = useState("");
-  const [lookupResult, setLookupResult] = useState(null);
-  const [lookupError, setLookupError] = useState(null);
-
   const handleLookup = (e) => {
     e.preventDefault();
     setLookupError(null);
@@ -40,67 +39,72 @@ export default function AdminPage() {
   };
 
   return (
-    <div>
-      <h2>Admin Panel</h2>
+    <div className="container animate-up">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Admin <span>Panel</span></h1>
+          <p className="page-subtitle">Register users and inspect profile records.</p>
+        </div>
+      </div>
 
-      {/* Register User */}
-      <h3>Register a New User</h3>
-      {regError && <p style={{ color: "red" }}>{regError}</p>}
-      {regResult && (
-        <p style={{ color: "green" }}>
-          User created: {regResult.firstname} {regResult.lastname} (ID: {regResult.id})
-        </p>
-      )}
-      <form onSubmit={handleRegister}>
-        <div>
-          <label>First Name: </label>
-          <input name="firstname" value={regForm.firstname} onChange={handleRegChange} required />
-        </div>
-        <div>
-          <label>Last Name: </label>
-          <input name="lastname" value={regForm.lastname} onChange={handleRegChange} required />
-        </div>
-        <div>
-          <label>Email: </label>
-          <input name="email" type="email" value={regForm.email} onChange={handleRegChange} required />
-        </div>
-        <div>
-          <label>Password: </label>
-          <input name="password" type="password" value={regForm.password} onChange={handleRegChange} required />
-        </div>
-        <div>
-          <label>Year: </label>
-          <input name="year" type="number" value={regForm.year} onChange={handleRegChange} required />
-        </div>
-        <button type="submit">Register User</button>
-      </form>
+      <div className="admin-grid">
+        <section className="admin-card glass">
+          <h2>Register user</h2>
+          {regError && <p className="admin-alert error">{regError}</p>}
+          {regResult && (
+            <p className="admin-alert success">
+              User created: {regResult.firstname} {regResult.lastname} / ID {regResult.id}
+            </p>
+          )}
+          <form onSubmit={handleRegister}>
+            <div className="form-grid">
+              <div>
+                <label>First Name</label>
+                <input name="firstname" value={regForm.firstname} onChange={handleRegChange} required />
+              </div>
+              <div>
+                <label>Last Name</label>
+                <input name="lastname" value={regForm.lastname} onChange={handleRegChange} required />
+              </div>
+              <div>
+                <label>Email</label>
+                <input name="email" type="email" value={regForm.email} onChange={handleRegChange} required />
+              </div>
+              <div>
+                <label>Password</label>
+                <input name="password" type="password" value={regForm.password} onChange={handleRegChange} required />
+              </div>
+              <div>
+                <label>Year</label>
+                <input name="year" type="number" value={regForm.year} onChange={handleRegChange} required />
+              </div>
+            </div>
+            <button type="submit" className="btn-primary">Register user</button>
+          </form>
+        </section>
 
-      <hr />
+        <section className="admin-card glass">
+          <h2>Lookup user</h2>
+          {lookupError && <p className="admin-alert error">{lookupError}</p>}
+          <form onSubmit={handleLookup} className="lookup-form">
+            <label>User ID</label>
+            <input value={lookupId} onChange={(e) => setLookupId(e.target.value)} required />
+            <button type="submit" className="btn-primary">Lookup</button>
+          </form>
 
-      {/* Lookup User */}
-      <h3>Lookup User by ID</h3>
-      {lookupError && <p style={{ color: "red" }}>{lookupError}</p>}
-      <form onSubmit={handleLookup}>
-        <div>
-          <label>User ID: </label>
-          <input value={lookupId} onChange={(e) => setLookupId(e.target.value)} required />
-        </div>
-        <button type="submit">Lookup</button>
-      </form>
-      {lookupResult && (
-        <table border="1" cellPadding="8" style={{ marginTop: 10 }}>
-          <tbody>
-            <tr><td><strong>ID</strong></td><td>{lookupResult.id}</td></tr>
-            <tr><td><strong>First Name</strong></td><td>{lookupResult.firstname}</td></tr>
-            <tr><td><strong>Last Name</strong></td><td>{lookupResult.lastname}</td></tr>
-            <tr><td><strong>Email</strong></td><td>{lookupResult.email}</td></tr>
-            <tr><td><strong>Role</strong></td><td>{lookupResult.role}</td></tr>
-            <tr><td><strong>Keycloak ID</strong></td><td>{lookupResult.keyCloakId}</td></tr>
-            <tr><td><strong>Created</strong></td><td>{lookupResult.createdDate}</td></tr>
-          </tbody>
-        </table>
-      )}
+          {lookupResult && (
+            <div className="lookup-table">
+              <div><strong>ID</strong><span>{lookupResult.id}</span></div>
+              <div><strong>First Name</strong><span>{lookupResult.firstname}</span></div>
+              <div><strong>Last Name</strong><span>{lookupResult.lastname}</span></div>
+              <div><strong>Email</strong><span>{lookupResult.email}</span></div>
+              <div><strong>Role</strong><span>{lookupResult.role}</span></div>
+              <div><strong>Keycloak ID</strong><span>{lookupResult.keyCloakId}</span></div>
+              <div><strong>Created</strong><span>{lookupResult.createdDate}</span></div>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
-

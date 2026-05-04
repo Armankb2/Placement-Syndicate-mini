@@ -137,7 +137,7 @@ def callback(ch, method, properties, body):
     bm25_weight, semantic_weight = get_search_weights(corpus_size)
 
     # 4. Perform Hybrid Search with corpus-aware weights and minimum score filter
-    searcher.fit(experiences, ["companyName", "role", "quetions", "tips"])
+    searcher.fit(experiences, ["companyName", "role", "quetions", "tips", "rounds"])
     top_matches = searcher.search(
         resume_text,
         top_k=3,

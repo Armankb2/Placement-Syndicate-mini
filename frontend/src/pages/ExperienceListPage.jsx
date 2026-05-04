@@ -16,9 +16,8 @@ export default function ExperienceListPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const { user, hasRole } = useAuth();
+  const { hasRole } = useAuth();
 
-  // Similar companies state
   const [similarCompanies, setSimilarCompanies] = useState([]);
   const [similarLoading, setSimilarLoading] = useState(false);
   const [similarError, setSimilarError] = useState(null);
@@ -33,7 +32,6 @@ export default function ExperienceListPage() {
     setSelectedCompany(company);
     setLoading(true);
     setError(null);
-    // Reset similar companies when switching company
     setSimilarCompanies([]);
     setSimilarError(null);
 
@@ -51,9 +49,10 @@ export default function ExperienceListPage() {
 
     getSimilarCompanies(selectedCompany, 3)
       .then((res) => {
-        setSimilarCompanies(res.data.similar || []);
-        if ((res.data.similar || []).length === 0) {
-          setSimilarError("No similar companies found yet. Add more experiences to improve suggestions!");
+        const similar = res.data.similar || [];
+        setSimilarCompanies(similar);
+        if (similar.length === 0) {
+          setSimilarError("No similar companies found yet. Add more experiences to improve suggestions.");
         }
       })
       .catch((err) => {
@@ -77,36 +76,42 @@ export default function ExperienceListPage() {
     }
   };
 
-  const filteredCompanies = companies.filter((c) =>
-    c.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCompanies = companies.filter((company) =>
+    company.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="container animate-up">
       <div className="page-header">
-        <h1 className="page-title">
-          Interview <span>Experiences</span>
-        </h1>
+        <div>
+          <h1 className="page-title">
+            Interview <span>Experiences</span>
+          </h1>
+          <p className="page-subtitle">Search companies, read rounds, and compare interview patterns.</p>
+        </div>
       </div>
 
       <div className="experience-layout">
         <aside className="company-sidebar glass">
-          <h3>Companies</h3>
+          <div className="sidebar-heading">
+            <h3>Companies</h3>
+            <span>{filteredCompanies.length}</span>
+          </div>
           <input
             type="text"
-            placeholder="Search company..."
+            placeholder="Search company"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-box"
           />
           <div className="company-list">
-            {filteredCompanies.map((c) => (
+            {filteredCompanies.map((company) => (
               <button
-                key={c}
-                className={`company-pill ${selectedCompany === c ? "active" : ""}`}
-                onClick={() => handleCompanySelect(c)}
+                key={company}
+                className={`company-pill ${selectedCompany === company ? "active" : ""}`}
+                onClick={() => handleCompanySelect(company)}
               >
-                {c}
+                {company}
               </button>
             ))}
           </div>
@@ -115,15 +120,18 @@ export default function ExperienceListPage() {
         <main className="experience-main">
           {!selectedCompany ? (
             <div className="empty-state glass">
-              <span className="icon">🏛️</span>
+              <span className="icon">CO</span>
               <p>Select a company to browse interview experiences.</p>
             </div>
           ) : (
             <div className="experience-results">
               <div className="results-header">
-                <h2>
-                  {selectedCompany} <span className="exp-count">({experiences.length})</span>
-                </h2>
+                <div>
+                  <span className="eyebrow">Selected company</span>
+                  <h2>
+                    {selectedCompany} <span className="exp-count">{experiences.length} reports</span>
+                  </h2>
+                </div>
                 <button
                   id="similar-companies-btn"
                   className="similar-btn"
@@ -131,23 +139,18 @@ export default function ExperienceListPage() {
                   disabled={similarLoading}
                   title="Find companies with similar interview patterns"
                 >
-                  {similarLoading ? (
-                    <span>🔍 Finding...</span>
-                  ) : (
-                    <span>✨ Similar Companies</span>
-                  )}
+                  {similarLoading ? "Finding matches" : "Similar companies"}
                 </button>
               </div>
 
-              {loading && <div className="loader">Analyzing data...</div>}
-              {error && <p className="error-message">{error}</p>}
+              {loading && <div className="loader inline-loader">Analyzing data...</div>}
+              {error && <p className="error-message inline-error">{error}</p>}
 
-              {/* ─── Similar Companies Panel ─────────────────────────── */}
               {(similarLoading || similarCompanies.length > 0 || similarError) && (
                 <div className="similar-panel glass animate-slide-in">
                   <div className="similar-panel-header">
-                    <span className="similar-icon">🔗</span>
-                    <h3>Companies with Similar Interview Patterns</h3>
+                    <span className="similar-icon">AI</span>
+                    <h3>Companies with similar interview patterns</h3>
                     <button
                       className="similar-close-btn"
                       onClick={() => {
@@ -155,7 +158,7 @@ export default function ExperienceListPage() {
                         setSimilarError(null);
                       }}
                     >
-                      ×
+                      Close
                     </button>
                   </div>
 
@@ -172,83 +175,92 @@ export default function ExperienceListPage() {
 
                   {!similarLoading && similarCompanies.length > 0 && (
                     <div className="similar-grid">
-                      {similarCompanies.map((s, i) => (
+                      {similarCompanies.map((similar, index) => (
                         <button
-                          key={i}
+                          key={similar.companyName || index}
                           className="similar-card"
-                          onClick={() => handleCompanySelect(s.companyName)}
-                          title={`Click to view ${s.companyName} experiences`}
+                          onClick={() => handleCompanySelect(similar.companyName)}
+                          title={`Click to view ${similar.companyName} experiences`}
                         >
-                          <div className="similar-card-rank">#{i + 1}</div>
+                          <div className="similar-card-rank">#{index + 1}</div>
                           <div className="similar-card-body">
-                            <div className="similar-company-name">{s.companyName}</div>
+                            <div className="similar-company-name">{similar.companyName}</div>
                             <div className="similar-scores">
                               <span className="score-badge total">
-                                {Math.round(s.similarityScore * 100)}% match
+                                {Math.round(similar.similarityScore * 100)}% match
                               </span>
                               <span className="score-badge semantic">
-                                🧠 {Math.round(s.semanticScore * 100)}%
+                                Semantic {Math.round(similar.semanticScore * 100)}%
                               </span>
                               <span className="score-badge keyword">
-                                🔤 {Math.round(s.keywordScore * 100)}%
+                                Keyword {Math.round(similar.keywordScore * 100)}%
                               </span>
                             </div>
                           </div>
-                          <div className="similar-arrow">→</div>
+                          <div className="similar-arrow">View</div>
                         </button>
                       ))}
                     </div>
                   )}
 
                   <p className="similar-footnote">
-                    Similarity is computed using AI (semantic + keyword matching) on interview questions and tips.
+                    Similarity combines semantic and keyword matching across interview questions and tips.
                   </p>
                 </div>
               )}
 
-              {/* ─── Experience Cards ─────────────────────────────────── */}
               <div className="experience-grid">
                 {experiences.map((exp) => (
                   <div key={exp.id} className="experience-card glass glass-hover">
                     <div className="card-header">
-                      <h3>{exp.role}</h3>
+                      <div>
+                        <h3>{exp.role}</h3>
+                        <p className="meta-info">Year {exp.year} / By {exp.createdBy}</p>
+                      </div>
                       <span className={`difficulty-badge ${exp.difficultyLevel?.toLowerCase()}`}>
                         {exp.difficultyLevel}
                       </span>
                     </div>
 
                     <div className="card-body">
-                      <p className="meta-info">
-                        Year: {exp.year} | By: {exp.createdBy}
-                      </p>
-
                       <div className="content-section">
                         <h4>Questions</h4>
-                        <p>{exp.quetions}</p>
+                        <p>{exp.quetions || "No questions documented."}</p>
                       </div>
 
                       <div className="content-section">
-                        <h4>Top Tips</h4>
-                        <p>{exp.tips}</p>
+                        <h4>Top tips</h4>
+                        <p>{exp.tips || "No tips documented."}</p>
                       </div>
 
                       {exp.rounds && exp.rounds.length > 0 && (
-                        <div className="rounds-summary">
-                          <h4>{exp.rounds.length} Rounds Covered</h4>
+                        <div className="rounds-section">
+                          <h4>Interview rounds</h4>
+                          <div className="round-list">
+                            {exp.rounds.map((round, index) => (
+                              <article className="round-detail" key={`${round.roundName || "round"}-${index}`}>
+                                <div className="round-number">{index + 1}</div>
+                                <div className="round-copy">
+                                  <h5>{round.roundName || `Round ${index + 1}`}</h5>
+                                  <p>{round.description || "No round description documented."}</p>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    <div className="card-footer">
-                      {hasRole("Admin") && (
+                    {hasRole("Admin") && (
+                      <div className="card-footer">
                         <button
                           className="delete-btn"
                           onClick={() => handleDelete(exp.id)}
                         >
-                          Delete (Admin)
+                          Delete as admin
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

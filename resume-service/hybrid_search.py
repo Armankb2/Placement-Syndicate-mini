@@ -16,9 +16,20 @@ class HybridSearcher:
         if not documents:
             return
 
+        def extract_text(val):
+            if isinstance(val, list):
+                parts = []
+                for item in val:
+                    if isinstance(item, dict):
+                        parts.extend([str(v) for k, v in item.items() if k != "_class"])
+                    else:
+                        parts.append(str(item))
+                return " ".join(parts)
+            return str(val)
+
         self.documents = documents
         self.corpus = [
-            " ".join([str(doc.get(field, "")) for field in text_fields])
+            " ".join([extract_text(doc.get(field, "")) for field in text_fields])
             for doc in documents
         ]
 
