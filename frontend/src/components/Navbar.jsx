@@ -52,10 +52,16 @@ export default function Navbar() {
           >
             {theme === "dark" ? "Light" : "Dark"}
           </button>
-          <Link to="/profile" className="user-name">
-            {displayName}
-          </Link>
-          <button className="logout-btn" onClick={logout}>Logout</button>
+          {user ? (
+            <>
+              <Link to="/profile" className="user-name">
+                {displayName}
+              </Link>
+              <button className="logout-btn" onClick={logout}>Logout</button>
+            </>
+          ) : (
+            <Link to="/login" className="user-name">Login</Link>
+          )}
         </div>
       </div>
     </nav>

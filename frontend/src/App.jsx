@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { setAuthToken } from "./services/api";
 import Navbar from "./components/Navbar";
@@ -11,6 +11,19 @@ import AddExperiencePage from "./pages/AddExperiencePage";
 import AdminPage from "./pages/AdminPage";
 import ResumeUploadPage from "./pages/ResumeUploadPage";
 import MyExperiencesPage from "./pages/MyExperiencesPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+
+/**
+ * Component to handle conditional Navbar rendering
+ */
+function NavigationWrapper() {
+  const location = useLocation();
+  const hideNavbarRoutes = ["/login", "/signup"];
+  const shouldHideNavbar = hideNavbarRoutes.includes(location.pathname);
+
+  return !shouldHideNavbar ? <Navbar /> : null;
+}
 
 export default function App() {
   const { token } = useAuth();
@@ -21,15 +34,17 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Navbar />
+      <NavigationWrapper />
       <main className="app-shell">
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/my-experiences" element={<MyExperiencesPage />} />
-          <Route path="/experiences" element={<ExperienceListPage />} />
-          <Route path="/experiences/new" element={<AddExperiencePage />} />
-          <Route path="/upload-resume" element={<ResumeUploadPage />} />
+          <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/my-experiences" element={<ProtectedRoute><MyExperiencesPage /></ProtectedRoute>} />
+          <Route path="/experiences" element={<ProtectedRoute><ExperienceListPage /></ProtectedRoute>} />
+          <Route path="/experiences/new" element={<ProtectedRoute><AddExperiencePage /></ProtectedRoute>} />
+          <Route path="/upload-resume" element={<ProtectedRoute><ResumeUploadPage /></ProtectedRoute>} />
           <Route
             path="/admin"
             element={

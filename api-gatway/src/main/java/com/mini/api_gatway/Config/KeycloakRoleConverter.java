@@ -17,9 +17,17 @@ public class KeycloakRoleConverter implements Converter<Jwt, Mono<AbstractAuthen
     @Override
     public Mono<AbstractAuthenticationToken> convert(Jwt jwt) {
 
-        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+        String appRole = jwt.getClaimAsString("role");
+        if (appRole != null && !appRole.isBlank()) {
+            AbstractAuthenticationToken authentication = new JwtAuthenticationToken(
+                    jwt,
+                    List.of(new SimpleGrantedAuthority("ROLE_" + appRole))
+            );
+            return Mono.just(authentication);
+        }
 
-        List<String> roles = (List<String>) realmAccess.get("roles");
+        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+        List<String> roles = realmAccess == null ? List.of() : (List<String>) realmAccess.getOrDefault("roles", List.of());
 
         Collection<SimpleGrantedAuthority> authorities =
                 roles.stream()

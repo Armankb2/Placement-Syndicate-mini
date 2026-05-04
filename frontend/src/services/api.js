@@ -21,6 +21,10 @@ export const getUserById = (userid) => api.get(`/users/${userid}`);
 
 export const registerUser = (data) => api.post("/users/register", data);
 
+export const login = (data) => api.post("/auth/login", data);
+
+export const signup = (data) => api.post("/auth/signup", data);
+
 // ─── Experience Service ─────────────────────────────────────────
 
 export const getExperienceById = (userid) => api.get(`/experience/${userid}`);

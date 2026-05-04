@@ -1,74 +1,76 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState, useRef } from "react";
-import keycloak from "../keycloak";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { login as loginRequest, setAuthToken, signup as signupRequest } from "../services/api";
 
 const AuthContext = createContext(null);
+const TOKEN_KEY = "placement_token";
+const USER_KEY = "placement_user";
 
 export function AuthProvider({ children }) {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [token, setToken] = useState(null);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const didInit = useRef(false);
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem(USER_KEY);
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
   useEffect(() => {
-    if (didInit.current) return;
-    didInit.current = true;
+    setAuthToken(token);
+  }, [token]);
 
-    const redirectUri = window.location.origin + "/";
-    console.log("Keycloak init with redirect URI:", redirectUri);
-    console.log("Keycloak realm:", keycloak.realm);
-    console.log("Keycloak clientId:", keycloak.clientId);
+  const persistSession = (authResponse) => {
+    const nextToken = authResponse.token;
+    const nextUser = normalizeUser(authResponse.user);
 
-    keycloak
-      .init({
-        onLoad: "login-required",
-        checkLoginIframe: false,
-        redirectUri: redirectUri,
-      })
-      .then((auth) => {
-        console.log("Keycloak authenticated:", auth);
-        setAuthenticated(auth);
-        setToken(keycloak.token);
-        setUser({
-          sub: keycloak.tokenParsed?.sub,
-          name: keycloak.tokenParsed?.preferred_username,
-          email: keycloak.tokenParsed?.email,
-          roles: keycloak.tokenParsed?.realm_access?.roles || [],
-        });
-        setLoading(false);
+    localStorage.setItem(TOKEN_KEY, nextToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+    setToken(nextToken);
+    setUser(nextUser);
+  };
 
-        // Auto-refresh token
-        setInterval(() => {
-          keycloak
-            .updateToken(30)
-            .then((refreshed) => {
-              if (refreshed) {
-                setToken(keycloak.token);
-              }
-            })
-            .catch(() => keycloak.logout());
-        }, 30000);
-      })
-      .catch((err) => {
-        console.error("Keycloak init failed:", err);
-        console.error("Full error:", JSON.stringify(err, null, 2));
-        setLoading(false);
-      });
-  }, []);
+  const login = async (credentials) => {
+    const response = await loginRequest(credentials);
+    persistSession(response.data);
+  };
 
-  const logout = () => keycloak.logout({ redirectUri: window.location.origin + "/" });
+  const signup = async (payload) => {
+    const response = await signupRequest(payload);
+    persistSession(response.data);
+  };
 
-  const hasRole = (role) => user?.roles?.includes(role) || false;
+  const logout = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    setToken(null);
+    setUser(null);
+    setAuthToken(null);
+  };
 
-  if (loading) return <div>Loading authentication...</div>;
-  if (!authenticated) return <div>Unable to authenticate.</div>;
+  const hasRole = (role) => user?.roles?.includes(role) || user?.role === role;
 
-  return (
-    <AuthContext.Provider value={{ token, user, logout, hasRole, keycloak }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      authenticated: Boolean(token),
+      token,
+      user,
+      login,
+      signup,
+      logout,
+      hasRole,
+    }),
+    [token, user]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function normalizeUser(userResponse) {
+  return {
+    sub: userResponse?.id,
+    name: userResponse?.firstname || userResponse?.email,
+    email: userResponse?.email,
+    role: userResponse?.role,
+    roles: userResponse?.role ? [userResponse.role] : [],
+  };
 }
 
 export function useAuth() {
@@ -76,4 +78,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-

@@ -6,47 +6,41 @@ import com.mini.user_service.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 import jakarta.validation.Valid;
 import java.util.List;
-
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-        @Autowired
-        private UserService userService;
+    @Autowired
+    private UserService userService;
 
-        @GetMapping("/me")
-        public ResponseEntity<UserResponse> getMyProfile(Authentication authentication) {
+    /**
+     * Returns the currently authenticated user's profile.
+     * The API Gateway validates the JWT and injects X-User-Id into the request headers
+     * before forwarding here — so we just read that header.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile(
+            @RequestHeader("X-User-Id") String userId
+    ) {
+        return ResponseEntity.ok(userService.getUserProfile(userId));
+    }
 
-                Jwt jwt = (Jwt) authentication.getPrincipal();
+    @GetMapping("/{userid}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable String userid) {
+        return ResponseEntity.ok(userService.getUserProfile(userid));
+    }
 
-                return ResponseEntity.ok(userService.getOrCreateUser(jwt));
+    @PostMapping("/register")
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(userService.register(request));
+    }
 
-        }
-
-
-        @GetMapping("/{userid}")
-        public ResponseEntity<UserResponse> getUser(@PathVariable String userid) {
-            return ResponseEntity.ok(userService.getUserProfile(userid)) ;
-        }
-
-        @PostMapping("/register")
-        public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request){
-            return ResponseEntity.ok(userService.register(request));
-        }
-
-        @GetMapping("/all")
-        public ResponseEntity<List<UserResponse>> getAllUsers() {
-            return ResponseEntity.ok(userService.getAllUsers());
-        }
-
-//        @GetMapping("/{userid}/validate")
-//        public ResponseEntity<Boolean> isUserPresent(@PathVariable String userid) {
-//            return ResponseEntity.ok(userService.existsByUserId(userid)) ;
-//        }
+    @GetMapping("/all")
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
 }

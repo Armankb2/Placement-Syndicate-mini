@@ -10,7 +10,4 @@ public class UserResponse {
     private String lastname;
     private String email;
     private String role;
-    private String keyCloakId;
-    private String createdDate;
-    private String password;
 }
