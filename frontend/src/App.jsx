@@ -13,6 +13,9 @@ import ResumeUploadPage from "./pages/ResumeUploadPage";
 import MyExperiencesPage from "./pages/MyExperiencesPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import MentorDashboard from "./pages/MentorDashboard";
+import BrowsePrograms from "./pages/BrowsePrograms";
+import MyEnrollments from "./pages/MyEnrollments";
 
 /**
  * Component to handle conditional Navbar rendering
@@ -45,6 +48,10 @@ export default function App() {
           <Route path="/experiences" element={<ProtectedRoute><ExperienceListPage /></ProtectedRoute>} />
           <Route path="/experiences/new" element={<ProtectedRoute><AddExperiencePage /></ProtectedRoute>} />
           <Route path="/upload-resume" element={<ProtectedRoute><ResumeUploadPage /></ProtectedRoute>} />
+          {/* Mentorship Routes */}
+          <Route path="/mentor-dashboard" element={<ProtectedRoute><MentorDashboard /></ProtectedRoute>} />
+          <Route path="/programs" element={<ProtectedRoute><BrowsePrograms /></ProtectedRoute>} />
+          <Route path="/my-enrollments" element={<ProtectedRoute><MyEnrollments /></ProtectedRoute>} />
           <Route
             path="/admin"
             element={
