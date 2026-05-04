@@ -1,0 +1,21 @@
+.mentor-dashboard .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+.mentor-dashboard .form-group.full-width { grid-column: 1 / -1; }
+.mentor-dashboard .mentor-form { padding: 28px; margin-bottom: 32px; }
+.mentor-dashboard .form-title { margin: 0 0 18px; font-size: 1.2rem; }
+.mentor-dashboard .section-label { font-size: 1.1rem; margin: 32px 0 18px; display: flex; align-items: center; gap: 10px; }
+.mentor-dashboard .count-badge { font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-dark); font-weight: 800; }
+.mentor-dashboard .programs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+.mentor-dashboard .program-card { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.mentor-dashboard .card-top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.mentor-dashboard .card-top-row h3 { margin: 0; font-size: 1.08rem; }
+.mentor-dashboard .badge-primary { background: var(--primary-soft); color: var(--primary-dark); }
+.mentor-dashboard .badge-danger { background: var(--danger-soft); color: var(--danger); }
+.mentor-dashboard .card-desc { color: var(--text-muted); font-size: 0.9rem; margin: 0; line-height: 1.5; }
+.mentor-dashboard .card-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.mentor-dashboard .tag { font-size: 0.78rem; padding: 4px 10px; border-radius: var(--radius); background: var(--surface-muted); border: 1px solid var(--border); color: var(--text-muted); }
+.mentor-dashboard .students-panel { padding-top: 12px; border-top: 1px solid var(--border); }
+.mentor-dashboard .student-list { display: flex; flex-direction: column; gap: 8px; }
+.mentor-dashboard .student-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius); background: var(--surface-muted); border: 1px solid var(--border); font-size: 0.9rem; }
+.mentor-dashboard .student-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 0.8rem; flex-shrink: 0; }
+.mentor-dashboard .muted { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 10px 0; margin: 0; }
+@media (max-width: 760px) { .mentor-dashboard .form-grid { grid-template-columns: 1fr; } .mentor-dashboard .programs-grid { grid-template-columns: 1fr; } }

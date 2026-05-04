@@ -42,4 +42,16 @@ export const deleteExperience = (experienceId) => api.delete(`/experience/delete
 
 export const deleteExperienceByAdmin = (experienceId) => api.delete(`/experience/admin/${experienceId}`);
 
+// ─── Mentorship Service ─────────────────────────────────────────
+
+// MENTOR
+export const createProgram = (data) => api.post("/mentorship/programs", data);
+export const getMyPrograms = () => api.get("/mentorship/programs/me");
+export const getEnrolledStudents = (programId) => api.get(`/mentorship/programs/${programId}/students`);
+
+// STUDENT
+export const getAllPrograms = () => api.get("/mentorship/programs");
+export const enrollInProgram = (programId) => api.post(`/mentorship/programs/${programId}/enroll`);
+export const getMyEnrollments = () => api.get("/mentorship/enrollments/me");
+
 export default api;

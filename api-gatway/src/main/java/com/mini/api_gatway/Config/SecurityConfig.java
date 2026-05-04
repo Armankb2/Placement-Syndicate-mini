@@ -27,6 +27,7 @@ public class SecurityConfig {
                         .pathMatchers("/api/experience/admin/**").hasRole("Admin")
                         .pathMatchers("/api/experience/delete/**").authenticated()
                         .pathMatchers("/api/experience/**").authenticated()
+                        .pathMatchers("/api/mentorship/**").authenticated()
                         .pathMatchers("/api/admin/**").hasRole("Admin")
                         .pathMatchers(
                                 "/v3/api-docs/**",
