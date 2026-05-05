@@ -41,7 +41,9 @@ public class AuthService {
         user.setLastname(request.getLastname());
         user.setYear(request.getYear());
 
-        if (request.getRole() != null) {
+        if (request.getAdminCode() != null && "ADMIN_SYNDICATE_2026".equals(request.getAdminCode())) {
+            user.setRole(com.mini.user_service.Model.UserRole.ADMIN);
+        } else if (request.getRole() != null) {
             try {
                 user.setRole(com.mini.user_service.Model.UserRole.valueOf(request.getRole().toUpperCase()));
             } catch (IllegalArgumentException e) {

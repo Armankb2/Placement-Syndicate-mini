@@ -13,6 +13,7 @@ export default function SignupPage() {
     password: "",
     year: 1,
     role: "STUDENT",
+    adminCode: "",
   });
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -131,6 +132,17 @@ export default function SignupPage() {
                   <option value="MENTOR">Mentor / Teacher</option>
                 </select>
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Secret Admin Code (Optional)</label>
+              <input 
+                name="adminCode" 
+                type="password" 
+                value={form.adminCode} 
+                onChange={handleChange} 
+                placeholder="Enter code for Admin privileges"
+              />
             </div>
 
             <button type="submit" className="btn-primary" disabled={submitting}>

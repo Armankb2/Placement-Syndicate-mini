@@ -24,11 +24,11 @@ public class SecurityConfig {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/api/auth/**").permitAll()
                         .pathMatchers("/api/users/**").authenticated()
-                        .pathMatchers("/api/experience/admin/**").hasRole("Admin")
+                        .pathMatchers("/api/experience/admin/**").hasRole("ADMIN")
                         .pathMatchers("/api/experience/delete/**").authenticated()
                         .pathMatchers("/api/experience/**").authenticated()
                         .pathMatchers("/api/mentorship/**").authenticated()
-                        .pathMatchers("/api/admin/**").hasRole("Admin")
+                        .pathMatchers("/api/admin/**").hasRole("ADMIN")
                         .pathMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

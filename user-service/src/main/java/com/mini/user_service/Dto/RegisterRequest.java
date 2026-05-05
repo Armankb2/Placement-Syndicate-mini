@@ -11,4 +11,5 @@ public class RegisterRequest {
     private String password;
     private Integer year;
     private String role;
+    private String adminCode;
 }

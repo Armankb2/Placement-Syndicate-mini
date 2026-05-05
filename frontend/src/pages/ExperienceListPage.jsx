@@ -64,7 +64,7 @@ export default function ExperienceListPage() {
 
   const handleDelete = (experienceId) => {
     if (window.confirm("Are you sure you want to delete this experience?")) {
-      const deletePromise = hasRole("Admin")
+      const deletePromise = hasRole("ADMIN")
         ? deleteExperienceByAdmin(experienceId)
         : deleteExperience(experienceId);
 
@@ -251,7 +251,7 @@ export default function ExperienceListPage() {
                       )}
                     </div>
 
-                    {hasRole("Admin") && (
+                    {hasRole("ADMIN") && (
                       <div className="card-footer">
                         <button
                           className="delete-btn"

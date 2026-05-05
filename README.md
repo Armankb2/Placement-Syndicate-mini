@@ -214,6 +214,9 @@ mini-project/
 ├── frontend/             # React + Keycloak JS + React Router
 ├── docker-compose.yml    # Keycloak + MySQL + MongoDB
 └── keycloak-realm-export.json  # Keycloak configuration
+
+
+#ADMIN : ADMIN_SYNDICATE_2026
 ```
 
 ## Stopping Services

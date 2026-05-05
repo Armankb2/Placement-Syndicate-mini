@@ -45,10 +45,6 @@ export default function Navbar() {
         {hasRole("STUDENT") || hasRole("ADMIN") ? (
           <Link to="/my-enrollments" className={`nav-item ${isActive("/my-enrollments") ? "active" : ""}`}>Enrollments</Link>
         ) : null}
-
-        {hasRole("ADMIN") && (
-          <Link to="/admin" className={`nav-item ${isActive("/admin") ? "active" : ""}`}>Admin</Link>
-        )}
       </div>
 
       <div className="nav-user">
@@ -64,9 +60,14 @@ export default function Navbar() {
           </button>
           {user ? (
             <>
+            <div className="user-pill">
               <Link to="/profile" className="user-name">
                 {displayName}
               </Link>
+              <span className={`role-badge ${user.role?.toLowerCase()}`}>
+                {user.role}
+              </span>
+            </div>
               <button className="logout-btn" onClick={logout}>Logout</button>
             </>
           ) : (
