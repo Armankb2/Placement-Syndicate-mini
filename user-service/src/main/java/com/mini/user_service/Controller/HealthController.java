@@ -5,8 +5,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class HealthController {
-    @GetMapping("/ping")
+    @GetMapping(value = "/ping", produces = "application/json")
     public String ping() {
-        return "pong";
+        return "{\"status\": \"pong\"}";
+    }
+
+    @GetMapping(value = "/", produces = "application/json")
+    public String root() {
+        return "{\"status\": \"UP\", \"service\": \"user-service\"}";
     }
 }

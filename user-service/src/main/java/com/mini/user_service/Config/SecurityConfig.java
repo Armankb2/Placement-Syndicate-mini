@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Auth endpoints are public — no token needed for login/signup
-                        .requestMatchers("/api/auth/**", "/error").permitAll()
+                        .requestMatchers("/api/auth/**", "/error", "/ping", "/", "/actuator/**").permitAll()
                         // Everything else requires a valid JWT
                         .anyRequest().authenticated()
                 )
