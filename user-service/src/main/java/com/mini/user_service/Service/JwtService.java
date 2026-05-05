@@ -32,7 +32,7 @@ public class JwtService {
 
     public String generateToken(User user) {
         Instant now = Instant.now();
-        String role = user.getRole() == null ? "Junior" : user.getRole().name();
+        String role = user.getRole() == null ? "STUDENT" : user.getRole().name();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("mini-project")

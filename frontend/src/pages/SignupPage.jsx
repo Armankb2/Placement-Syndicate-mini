@@ -12,6 +12,7 @@ export default function SignupPage() {
     email: "",
     password: "",
     year: 1,
+    role: "STUDENT",
   });
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -110,17 +111,26 @@ export default function SignupPage() {
               />
             </div>
 
-            <div className="form-group">
-              <label>Current Year</label>
-              <input 
-                name="year" 
-                type="number" 
-                min="1" 
-                max="4" 
-                value={form.year} 
-                onChange={handleChange} 
-                required 
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label>Current Year</label>
+                <input 
+                  name="year" 
+                  type="number" 
+                  min="1" 
+                  max="4" 
+                  value={form.year} 
+                  onChange={handleChange} 
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label>I am a</label>
+                <select name="role" value={form.role} onChange={handleChange} required>
+                  <option value="STUDENT">Student</option>
+                  <option value="MENTOR">Mentor / Teacher</option>
+                </select>
+              </div>
             </div>
 
             <button type="submit" className="btn-primary" disabled={submitting}>

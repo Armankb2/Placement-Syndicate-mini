@@ -41,22 +41,5 @@ public class User {
     @CreationTimestamp
     private LocalDateTime createdDate;
 
-    @PrePersist
-    @PreUpdate
-    private void assignRoleFromYear() {
-        if (this.year == null) {
-            // if year is unknown, don't change role (or set a sensible default)
-            return;
-        }
-
-        if (this.year >= 4) {
-            this.role = UserRole.Senior;
-        } else if (this.year > 0) {
-            this.role = UserRole.Junior;
-        } else {
-            // non-positive year -- default to Junior
-            this.role = UserRole.Junior;
-        }
-    }
 
 }

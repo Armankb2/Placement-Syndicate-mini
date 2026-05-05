@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ public class MentorshipController {
     // ─── MENTOR ENDPOINTS ──────────────────────────────────────────
 
     @PostMapping("/programs")
+    @PreAuthorize("hasAnyRole('MENTOR', 'ADMIN')")
     public ResponseEntity<?> createProgram(
             @Valid @RequestBody ProgramRequest request,
             @AuthenticationPrincipal Jwt jwt) {
@@ -41,11 +43,13 @@ public class MentorshipController {
     }
 
     @GetMapping("/programs/me")
+    @PreAuthorize("hasAnyRole('MENTOR', 'ADMIN')")
     public ResponseEntity<List<ProgramResponse>> getMyPrograms(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(mentorshipService.getMyPrograms(jwt.getSubject()));
     }
 
     @GetMapping("/programs/{programId}/students")
+    @PreAuthorize("hasAnyRole('MENTOR', 'ADMIN')")
     public ResponseEntity<?> getEnrolledStudents(
             @PathVariable String programId,
             @AuthenticationPrincipal Jwt jwt) {
@@ -59,11 +63,13 @@ public class MentorshipController {
     // ─── STUDENT ENDPOINTS ─────────────────────────────────────────
 
     @GetMapping("/programs")
+    @PreAuthorize("hasAnyRole('STUDENT', 'MENTOR', 'ADMIN')")
     public ResponseEntity<List<ProgramResponse>> getAllPrograms() {
         return ResponseEntity.ok(mentorshipService.getAllPrograms());
     }
 
     @PostMapping("/programs/{programId}/enroll")
+    @PreAuthorize("hasAnyRole('STUDENT', 'MENTOR', 'ADMIN')")
     public ResponseEntity<?> enrollInProgram(
             @PathVariable String programId,
             @AuthenticationPrincipal Jwt jwt) {
@@ -80,6 +86,7 @@ public class MentorshipController {
     }
 
     @GetMapping("/enrollments/me")
+    @PreAuthorize("hasAnyRole('STUDENT', 'MENTOR', 'ADMIN')")
     public ResponseEntity<List<EnrollmentResponse>> getMyEnrollments(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(mentorshipService.getMyEnrollments(jwt.getSubject()));
     }

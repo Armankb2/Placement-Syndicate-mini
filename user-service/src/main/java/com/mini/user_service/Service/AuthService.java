@@ -41,6 +41,16 @@ public class AuthService {
         user.setLastname(request.getLastname());
         user.setYear(request.getYear());
 
+        if (request.getRole() != null) {
+            try {
+                user.setRole(com.mini.user_service.Model.UserRole.valueOf(request.getRole().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                user.setRole(com.mini.user_service.Model.UserRole.STUDENT);
+            }
+        } else {
+            user.setRole(com.mini.user_service.Model.UserRole.STUDENT);
+        }
+
         User savedUser = userRepository.save(user);
         return new AuthResponse(jwtService.generateToken(savedUser), userService.mapToResponse(savedUser));
     }
