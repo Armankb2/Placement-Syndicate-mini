@@ -115,6 +115,10 @@
   border-color: var(--danger);
 }
 
+.bento-card:nth-child(5)::before {
+  border-color: var(--primary);
+}
+
 .card-content {
   position: relative;
   z-index: 1;

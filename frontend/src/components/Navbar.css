@@ -46,9 +46,16 @@
 
 .nav-links {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
   min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none; /* Firefox */
+}
+
+.nav-links::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
 .nav-item {

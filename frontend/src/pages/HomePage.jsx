@@ -70,6 +70,14 @@ export default function HomePage() {
             <p>Manage your account settings and view your contributions.</p>
           </div>
         </Link>
+
+        <Link to="/mentor-dashboard" className="bento-card glass glass-hover">
+          <div className="card-content">
+            <span className="card-icon">MN</span>
+            <h3>Mentor Connect</h3>
+            <p>Connect with experienced mentors for personalized guidance and mock interviews.</p>
+          </div>
+        </Link>
       </div>
     </div>
   );
