@@ -7,13 +7,9 @@ export default function SignupPage() {
   const { authenticated, signup } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    firstname: "",
-    lastname: "",
-    email: "",
-    password: "",
-    year: 1,
-    role: "STUDENT",
-    adminCode: "",
+    firstname: "", lastname: "", email: "", password: "",
+    year: 1, role: "STUDENT", adminCode: "",
+    usn: "", department: "", designation: ""
   });
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -35,7 +31,7 @@ export default function SignupPage() {
       await signup({ ...form, year: parseInt(form.year, 10) });
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Could not create account.");
+      setError(err.response?.data?.message || err.response?.data?.error || "Could not create account.");
     } finally {
       setSubmitting(false);
     }
@@ -68,81 +64,63 @@ export default function SignupPage() {
             <div className="form-row">
               <div className="form-group">
                 <label>First name</label>
-                <input 
-                  name="firstname" 
-                  value={form.firstname} 
-                  onChange={handleChange} 
-                  placeholder="John"
-                  required 
-                />
+                <input name="firstname" value={form.firstname} onChange={handleChange} placeholder="John" required />
               </div>
               <div className="form-group">
                 <label>Last name</label>
-                <input 
-                  name="lastname" 
-                  value={form.lastname} 
-                  onChange={handleChange} 
-                  placeholder="Doe"
-                  required 
-                />
+                <input name="lastname" value={form.lastname} onChange={handleChange} placeholder="Doe" required />
               </div>
             </div>
 
             <div className="form-group">
               <label>Email Address</label>
-              <input 
-                name="email" 
-                type="email" 
-                value={form.email} 
-                onChange={handleChange} 
-                placeholder="john@example.com"
-                required 
-              />
+              <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@msrit.edu" required />
             </div>
 
             <div className="form-group">
               <label>Password</label>
-              <input 
-                name="password" 
-                type="password" 
-                value={form.password} 
-                onChange={handleChange} 
-                placeholder="••••••••"
-                required 
-              />
+              <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="••••••••" required />
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Current Year</label>
-                <input 
-                  name="year" 
-                  type="number" 
-                  min="1" 
-                  max="4" 
-                  value={form.year} 
-                  onChange={handleChange} 
-                  required 
-                />
-              </div>
-              <div className="form-group">
                 <label>I am a</label>
                 <select name="role" value={form.role} onChange={handleChange} required>
                   <option value="STUDENT">Student</option>
-                  <option value="MENTOR">Mentor / Teacher</option>
+                  <option value="MENTOR">Mentor</option>
+                  <option value="TEACHER">Teacher</option>
                 </select>
               </div>
+              {form.role === "STUDENT" ? (
+                <div className="form-group">
+                  <label>Current Year</label>
+                  <input name="year" type="number" min="1" max="4" value={form.year} onChange={handleChange} required />
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label>Designation</label>
+                  <input name="designation" value={form.designation} onChange={handleChange} placeholder="Professor" required />
+                </div>
+              )}
             </div>
+
+            {form.role === "STUDENT" && (
+              <div className="form-group">
+                <label>USN (University Seat Number)</label>
+                <input name="usn" value={form.usn} onChange={handleChange} placeholder="1MS21CS001" required />
+              </div>
+            )}
+
+            {(form.role === "MENTOR" || form.role === "TEACHER") && (
+              <div className="form-group">
+                <label>Department</label>
+                <input name="department" value={form.department} onChange={handleChange} placeholder="Computer Science" required />
+              </div>
+            )}
 
             <div className="form-group">
               <label>Secret Admin Code (Optional)</label>
-              <input 
-                name="adminCode" 
-                type="password" 
-                value={form.adminCode} 
-                onChange={handleChange} 
-                placeholder="Enter code for Admin privileges"
-              />
+              <input name="adminCode" type="password" value={form.adminCode} onChange={handleChange} placeholder="Enter code for Admin privileges" />
             </div>
 
             <button type="submit" className="btn-primary" disabled={submitting}>

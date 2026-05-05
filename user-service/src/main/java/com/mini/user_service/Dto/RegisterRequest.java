@@ -12,4 +12,8 @@ public class RegisterRequest {
     private Integer year;
     private String role;
     private String adminCode;
+    
+    private String usn;
+    private String department;
+    private String designation;
 }

@@ -30,4 +30,16 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody java.util.Map<String, String> request) {
+        authService.forgotPassword(request.get("email"));
+        return ResponseEntity.ok("OTP sent to your email");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody java.util.Map<String, String> request) {
+        authService.verifyOtpAndResetPassword(request.get("email"), request.get("otp"), request.get("newPassword"));
+        return ResponseEntity.ok("Password reset successful");
+    }
 }

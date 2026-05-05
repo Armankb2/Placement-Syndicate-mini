@@ -26,7 +26,28 @@ class LLMClient:
         matches. It must never invent skills, companies, or questions not in the data.
         """
         if not self.client:
-            return "LLM Advisor is offline. Please add your GROQ_API_KEY to the .env file."
+            feedback = "### 🤖 Rule-Based Analysis (LLM Offline)\n\n"
+            feedback += "You can enable full AI analysis by adding a `GROQ_API_KEY` to your `.env` file. In the meantime, here is a summary based on your top matches:\n\n"
+            
+            for match in matches:
+                doc = match["document"]
+                company = doc.get("companyName", "Unknown")
+                score = match["score"]
+                feedback += f"#### 🎯 {company} (Match Score: {score:.2f})\n"
+                
+                questions = doc.get("quetions", "Not provided")
+                if questions != "Not provided":
+                    feedback += f"- **Key Topics to Prepare:** {questions}\n"
+                
+                tips = doc.get("tips", "Not provided")
+                if tips != "Not provided":
+                    feedback += f"- **Candidate Tip:** \"{tips}\"\n"
+                
+                feedback += "\n"
+            
+            feedback += "### 💡 Preparation Strategy\n"
+            feedback += "Based on these matches, you should focus on the common technical topics listed above. Practice explaining your projects in the context of these specific company requirements."
+            return feedback
 
         if not matches:
             return (

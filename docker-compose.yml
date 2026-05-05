@@ -1,5 +1,16 @@
 
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-user-service
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: mini_user_service
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
   keycloak:
     image: quay.io/keycloak/keycloak:23.0
     container_name: keycloak
@@ -10,9 +21,10 @@ services:
       - "9090:8080"
     command:
       - start-dev
+      - --import-realm
     volumes:
       - keycloak-data:/opt/keycloak/data
-
+      - ./keycloak-realm-export.json:/opt/keycloak/data/import/realm.json
 
   mongodb:
     image: mongo:7.0
@@ -64,9 +76,11 @@ services:
 
 volumes:
   keycloak-data:
+  mysql-data:
   mongo-data:
   zookeeper-data:
   kafka-data:
   rabbitmq-data:
+
 
 

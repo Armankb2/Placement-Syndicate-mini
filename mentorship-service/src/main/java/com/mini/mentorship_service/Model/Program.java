@@ -16,11 +16,10 @@ public class Program {
     @Id
     private String id;
 
-    private String title;
+    private String domain;
     private String description;
-    private String date;
-    private String time;
-    private String duration;
+    
+    private java.util.Map<String, java.util.List<String>> availability; // Day -> List of time slots
 
     private int maxStudents;
     private int enrolledCount;

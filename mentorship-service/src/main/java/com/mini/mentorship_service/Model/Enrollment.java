@@ -17,7 +17,7 @@ public class Enrollment {
     private String id;
 
     private String programId;
-    private String programTitle;
+    private String programDomain;
 
     private String studentId;
     private String studentName;

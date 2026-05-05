@@ -12,11 +12,9 @@ import java.time.LocalDateTime;
 public class ProgramResponse {
 
     private String id;
-    private String title;
+    private String domain;
     private String description;
-    private String date;
-    private String time;
-    private String duration;
+    private java.util.Map<String, java.util.List<String>> availability;
     private int maxStudents;
     private int enrolledCount;
     private String mentorId;

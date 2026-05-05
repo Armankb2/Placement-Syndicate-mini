@@ -35,11 +35,16 @@ public class User {
     private String keyCloakId;
 
 
+    private String usn;
+    private String department;
+    private String designation;
+
+    private String otp;
+    private LocalDateTime otpExpiry;
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
     @CreationTimestamp
     private LocalDateTime createdDate;
-
-
 }

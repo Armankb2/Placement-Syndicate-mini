@@ -27,15 +27,16 @@ public class MentorshipService {
     @Autowired
     private EnrollmentRepository enrollmentRepository;
 
+    @Autowired
+    private org.springframework.kafka.core.KafkaTemplate<String, String> kafkaTemplate;
+
     // ─── MENTOR: Create Program ────────────────────────────────────
     public ProgramResponse createProgram(ProgramRequest request, String mentorId, String mentorName) {
-        logger.info("Creating program '{}' by mentor '{}'", request.getTitle(), mentorName);
+        logger.info("Creating program in domain '{}' by mentor '{}'", request.getDomain(), mentorName);
         Program program = new Program();
-        program.setTitle(request.getTitle());
+        program.setDomain(request.getDomain());
         program.setDescription(request.getDescription());
-        program.setDate(request.getDate());
-        program.setTime(request.getTime());
-        program.setDuration(request.getDuration());
+        program.setAvailability(request.getAvailability());
         program.setMaxStudents(request.getMaxStudents());
         program.setEnrolledCount(0);
         program.setMentorId(mentorId);
@@ -92,7 +93,7 @@ public class MentorshipService {
 
         Enrollment enrollment = new Enrollment();
         enrollment.setProgramId(programId);
-        enrollment.setProgramTitle(program.getTitle());
+        enrollment.setProgramDomain(program.getDomain());
         enrollment.setStudentId(studentId);
         enrollment.setStudentName(studentName);
         Enrollment saved = enrollmentRepository.save(enrollment);
@@ -100,7 +101,19 @@ public class MentorshipService {
         program.setEnrolledCount(program.getEnrolledCount() + 1);
         programRepository.save(program);
 
-        logger.info("Student '{}' enrolled in program '{}'", studentName, program.getTitle());
+        logger.info("Student '{}' enrolled in program '{}'", studentName, program.getDomain());
+
+        // Kafka Notification
+        try {
+            String message = String.format(
+                "{\"studentId\": \"%s\", \"studentName\": \"%s\", \"mentorId\": \"%s\", \"mentorName\": \"%s\", \"domain\": \"%s\", \"type\": \"ENROLLMENT\"}",
+                studentId, studentName, program.getMentorId(), program.getMentorName(), program.getDomain()
+            );
+            kafkaTemplate.send("enrollment-notification", message);
+        } catch (Exception ex) {
+            logger.error("Failed to send enrollment notification: {}", ex.getMessage());
+        }
+
         return mapToEnrollmentResponse(saved);
     }
 
@@ -115,18 +128,25 @@ public class MentorshipService {
     // ─── Mappers ───────────────────────────────────────────────────
     private ProgramResponse mapToResponse(Program p) {
         ProgramResponse r = new ProgramResponse();
-        r.setId(p.getId()); r.setTitle(p.getTitle()); r.setDescription(p.getDescription());
-        r.setDate(p.getDate()); r.setTime(p.getTime()); r.setDuration(p.getDuration());
-        r.setMaxStudents(p.getMaxStudents()); r.setEnrolledCount(p.getEnrolledCount());
-        r.setMentorId(p.getMentorId()); r.setMentorName(p.getMentorName());
+        r.setId(p.getId());
+        r.setDomain(p.getDomain());
+        r.setDescription(p.getDescription());
+        r.setAvailability(p.getAvailability());
+        r.setMaxStudents(p.getMaxStudents());
+        r.setEnrolledCount(p.getEnrolledCount());
+        r.setMentorId(p.getMentorId());
+        r.setMentorName(p.getMentorName());
         r.setCreatedDate(p.getCreatedDate());
         return r;
     }
 
     private EnrollmentResponse mapToEnrollmentResponse(Enrollment e) {
         EnrollmentResponse r = new EnrollmentResponse();
-        r.setId(e.getId()); r.setProgramId(e.getProgramId()); r.setProgramTitle(e.getProgramTitle());
-        r.setStudentId(e.getStudentId()); r.setStudentName(e.getStudentName());
+        r.setId(e.getId());
+        r.setProgramId(e.getProgramId());
+        r.setProgramTitle(e.getProgramDomain());
+        r.setStudentId(e.getStudentId());
+        r.setStudentName(e.getStudentName());
         r.setEnrolledDate(e.getEnrolledDate());
         return r;
     }

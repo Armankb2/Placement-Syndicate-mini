@@ -14,8 +14,10 @@ export default function MentorDashboard() {
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [form, setForm] = useState({
-    title: "", description: "", date: "", time: "", duration: "", maxStudents: 10,
+    domain: "", description: "", maxStudents: 10, availability: {}
   });
+  const [currentDay, setCurrentDay] = useState("Monday");
+  const [currentTime, setCurrentTime] = useState("10:00");
 
   useEffect(() => { fetchMyPrograms(); }, []);
 
@@ -30,16 +32,51 @@ export default function MentorDashboard() {
     setForm((prev) => ({ ...prev, [name]: name === "maxStudents" ? parseInt(value) || 0 : value }));
   };
 
+  const addAvailability = () => {
+    if (!currentTime) return;
+    setForm(prev => {
+      const newAvail = { ...prev.availability };
+      if (!newAvail[currentDay]) newAvail[currentDay] = [];
+      if (!newAvail[currentDay].includes(currentTime)) {
+        newAvail[currentDay].push(currentTime);
+      }
+      return { ...prev, availability: newAvail };
+    });
+  };
+
+  const removeSlot = (day, time) => {
+    setForm(prev => {
+      const newAvail = { ...prev.availability };
+      newAvail[day] = newAvail[day].filter(t => t !== time);
+      if (newAvail[day].length === 0) delete newAvail[day];
+      return { ...prev, availability: newAvail };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.description || !form.date || !form.time || !form.duration) {
-      setMessage({ text: "Please fill in all fields", type: "error" }); return;
+    
+    // Merge existing availability with currently typed slot
+    let finalAvailability = { ...form.availability };
+    if (currentTime) {
+      if (!finalAvailability[currentDay]) finalAvailability[currentDay] = [];
+      if (!finalAvailability[currentDay].includes(currentTime)) {
+        finalAvailability[currentDay].push(currentTime);
+      }
     }
+
+    if (!form.domain || !form.description || Object.keys(finalAvailability).length === 0) {
+      setMessage({ text: "Please fill in all fields (Domain, Description, and Availability)", type: "error" }); 
+      return;
+    }
+
     try {
       setSubmitting(true);
-      await createProgram(form);
+      const payload = { ...form, availability: finalAvailability };
+      await createProgram(payload);
       setMessage({ text: "Program created successfully!", type: "success" });
-      setForm({ title: "", description: "", date: "", time: "", duration: "", maxStudents: 10 });
+      setForm({ domain: "", description: "", maxStudents: 10, availability: {} });
+      setCurrentTime("10:00");
       setShowForm(false);
       fetchMyPrograms();
     } catch (err) {
@@ -83,21 +120,44 @@ export default function MentorDashboard() {
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="form-group full-width">
-                <label>Program Title</label>
-                <input type="text" name="title" value={form.title} onChange={handleChange}
-                  placeholder="e.g. System Design Masterclass" />
+                <label>Program Domain</label>
+                <input type="text" name="domain" value={form.domain} onChange={handleChange}
+                  placeholder="e.g. System Design, Web Dev, DSA" />
               </div>
               <div className="form-group full-width">
                 <label>Description</label>
                 <textarea name="description" value={form.description} onChange={handleChange}
                   placeholder="What students will learn..." rows={3} />
               </div>
-              <div className="form-group"><label>Date</label>
-                <input type="date" name="date" value={form.date} onChange={handleChange} /></div>
-              <div className="form-group"><label>Time</label>
-                <input type="time" name="time" value={form.time} onChange={handleChange} /></div>
-              <div className="form-group"><label>Duration</label>
-                <input type="text" name="duration" value={form.duration} onChange={handleChange} placeholder="e.g. 2 hours" /></div>
+              
+              <div className="form-group full-width availability-manager">
+                <label>Weekly Availability (Day & Time)</label>
+                <div className="availability-controls">
+                  <select value={currentDay} onChange={(e) => setCurrentDay(e.target.value)}>
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <input type="time" value={currentTime} onChange={(e) => setCurrentTime(e.target.value)} />
+                  <button type="button" className="btn-small" onClick={addAvailability}>Add More</button>
+                </div>
+                
+                {Object.keys(form.availability).length > 0 && (
+                  <div className="slots-preview">
+                    {Object.entries(form.availability).map(([day, times]) => (
+                      <div key={day} className="day-group">
+                        <strong>{day}:</strong>
+                        {times.map(t => (
+                          <span key={t} className="slot-tag">
+                            {t} <span className="remove" onClick={() => removeSlot(day, t)}>×</span>
+                          </span>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="form-group"><label>Max Students</label>
                 <input type="number" name="maxStudents" value={form.maxStudents} onChange={handleChange} min="1" /></div>
             </div>
@@ -123,16 +183,16 @@ export default function MentorDashboard() {
           {programs.map((p, i) => (
             <div key={p.id} className="glass-card glass-hover program-card animate-up" style={{ animationDelay: `${i * 0.07}s` }}>
               <div className="card-top-row">
-                <h3>{p.title}</h3>
+                <h3>{p.domain}</h3>
                 <span className={`card-badge ${p.enrolledCount >= p.maxStudents ? "badge-danger" : "badge-primary"}`}>
                   {p.enrolledCount}/{p.maxStudents}
                 </span>
               </div>
               <p className="card-desc">{p.description}</p>
               <div className="card-tags">
-                <span className="tag">📅 {p.date}</span>
-                <span className="tag">🕐 {p.time}</span>
-                <span className="tag">⏱️ {p.duration}</span>
+                {p.availability && Object.entries(p.availability).map(([day, times]) => (
+                  <span key={day} className="tag">📅 {day}: {times.join(", ")}</span>
+                ))}
               </div>
               <button className="btn-small" onClick={() => viewStudents(p.id)}>
                 {selectedProgram === p.id ? "Hide Students" : "View Students"}

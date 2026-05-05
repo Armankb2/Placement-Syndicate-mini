@@ -11,20 +11,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProgramRequest {
 
-    @NotBlank(message = "Title is required")
-    private String title;
+    @NotBlank(message = "Domain is required")
+    private String domain;
 
     @NotBlank(message = "Description is required")
     private String description;
 
-    @NotBlank(message = "Date is required")
-    private String date;
-
-    @NotBlank(message = "Time is required")
-    private String time;
-
-    @NotBlank(message = "Duration is required")
-    private String duration;
+    private java.util.Map<String, java.util.List<String>> availability;
 
     @Min(value = 1, message = "Max students must be at least 1")
     private int maxStudents;

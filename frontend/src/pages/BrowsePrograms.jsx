@@ -27,9 +27,9 @@ export default function BrowsePrograms() {
   };
 
   const filtered = programs.filter(p =>
-    p.title.toLowerCase().includes(search.toLowerCase()) ||
-    p.mentorName?.toLowerCase().includes(search.toLowerCase()) ||
-    p.description?.toLowerCase().includes(search.toLowerCase())
+    (p.domain?.toLowerCase() || "").includes(search.toLowerCase()) ||
+    (p.mentorName?.toLowerCase() || "").includes(search.toLowerCase()) ||
+    (p.description?.toLowerCase() || "").includes(search.toLowerCase())
   );
 
   return (
@@ -42,7 +42,7 @@ export default function BrowsePrograms() {
       </div>
 
       <div className="search-wrap animate-up">
-        <input type="text" placeholder="Search by title, mentor, or description..." value={search}
+        <input type="text" placeholder="Search by domain, mentor, or description..." value={search}
           onChange={(e) => setSearch(e.target.value)} />
       </div>
 
@@ -76,12 +76,12 @@ export default function BrowsePrograms() {
                     {isFull ? "FULL" : `${spots} spot${spots !== 1 ? "s" : ""}`}
                   </span>
                 </div>
-                <h3 className="bp-title">{p.title}</h3>
+                <h3 className="bp-title">{p.domain}</h3>
                 <p className="bp-desc">{p.description}</p>
                 <div className="bp-tags">
-                  <span className="tag">📅 {p.date}</span>
-                  <span className="tag">🕐 {p.time}</span>
-                  <span className="tag">⏱️ {p.duration}</span>
+                  {p.availability && Object.entries(p.availability).map(([day, times]) => (
+                    <span key={day} className="tag">📅 {day}: {times.join(", ")}</span>
+                  ))}
                   <span className="tag">👥 {p.enrolledCount}/{p.maxStudents}</span>
                 </div>
                 <div className="bp-bar-wrap">
