@@ -14,9 +14,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableJpaRepositories(basePackages = "com.mini.user_service.Repository")
 @EntityScan(basePackages = "com.mini.user_service.Model")
 @EnableMongoRepositories(basePackages = {
-    "com.mini.experience_service.Repository",
-    "com.mini.mentorship_service.Repository",
-    "com.mini.notification_service.Repository"
+        "com.mini.experience_service.Repository",
+        "com.mini.mentorship_service.Repository",
+        "com.mini.notification_service"
 })
 public class UnifiedBackendApplication {
     public static void main(String[] args) {
