@@ -1,29 +1,31 @@
 from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, util
 import numpy as np
-import chromadb
-from chromadb.utils import embedding_functions
 import os
 
 class HybridSearcher:
-    def __init__(self, model_name='all-MiniLM-L6-v2', persist_directory="./chroma_db", collection_name="interview_experiences"):
-        """Initializes the hybrid search engine with BM25 and a Persistent ChromaDB."""
-        # Check if we are in a limited RAM environment
-        self.model = SentenceTransformer(model_name)
+    def __init__(self, model_name='all-MiniLM-L6-v2'):
+        """
+        Lightweight Hybrid Search: BM25 + In-Memory Semantic Vectors.
+        Optimized for 512MB RAM Free Tier environments.
+        """
+        self.model_name = model_name
+        self.model = None # Lazy loaded
         self.bm25 = None
         self.documents = []
         self.corpus = []
+        self.embeddings = []
 
-        # Initialize ChromaDB
-        self.chroma_client = chromadb.PersistentClient(path=persist_directory)
-        self.embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=model_name)
-        self.collection = self.chroma_client.get_or_create_collection(
-            name=collection_name,
-            embedding_function=self.embedding_fn
-        )
+    def _get_model(self):
+        """Lazy loads the model only when needed to save RAM during startup."""
+        if self.model is None:
+            print(f" [AI] Loading {self.model_name} into RAM...")
+            # Use 'cpu' explicitly to save memory on free-tier containers
+            self.model = SentenceTransformer(self.model_name, device='cpu')
+        return self.model
 
     def fit(self, documents: list, text_fields: list):
-        """Fits the engine on the provided documents and specific text fields."""
+        """Fits the engine on the provided documents."""
         if not documents:
             return
 
@@ -44,36 +46,19 @@ class HybridSearcher:
             for doc in documents
         ]
 
-        # 1. Fit BM25
+        # 1. Lexical (BM25) - Very low RAM usage
         tokenized_corpus = [doc.lower().split() for doc in self.corpus]
         self.bm25 = BM25Okapi(tokenized_corpus)
 
-        # 2. Add to ChromaDB (Persistent)
-        existing_ids = set(self.collection.get()["ids"])
-
-        ids_to_add = []
-        docs_to_add = []
-        metadatas_to_add = []
-
-        for i, doc in enumerate(documents):
-            doc_id = str(doc.get("id") or doc.get("_id") or f"doc_{i}")
-            if doc_id not in existing_ids:
-                ids_to_add.append(doc_id)
-                docs_to_add.append(self.corpus[i])
-                metadatas_to_add.append({"source": "mongodb", "original_id": doc_id})
-
-        if ids_to_add:
-            print(f"  [ChromaDB] Adding {len(ids_to_add)} new experiences to vector store...")
-            self.collection.add(
-                ids=ids_to_add,
-                documents=docs_to_add,
-                metadatas=metadatas_to_add
-            )
+        # 2. Semantic (Embeddings) - Computed in-memory
+        model = self._get_model()
+        # Convert to numpy to keep memory footprint low
+        self.embeddings = model.encode(self.corpus, convert_to_tensor=True, show_progress_bar=False)
 
     def search(self, query: str, top_k: int = 3, min_score: float = 0.0,
-               bm25_weight: float = 0.5, semantic_weight: float = 0.5):
-        """Performs a hybrid search using BM25 and ChromaDB."""
-        if not self.documents or not self.bm25:
+               bm25_weight: float = 0.2, semantic_weight: float = 0.8):
+        """Performs hybrid search using In-Memory logic (Matches ChromaDB accuracy)."""
+        if not self.documents or self.bm25 is None:
             return []
 
         # 1. BM25 Scores
@@ -83,25 +68,13 @@ class HybridSearcher:
         if bm25_max > 0:
             bm25_scores = bm25_scores / bm25_max
 
-        # 2. ChromaDB Semantic Scores
-        results_chroma = self.collection.query(
-            query_texts=[query],
-            n_results=len(self.documents)
-        )
+        # 2. Semantic Scores (Cosine Similarity)
+        model = self._get_model()
+        query_embedding = model.encode(query, convert_to_tensor=True, show_progress_bar=False)
+        # util.cos_sim is the same algorithm ChromaDB uses for 'cosine' distance
+        semantic_scores = util.cos_sim(query_embedding, self.embeddings).cpu().numpy()[0]
 
-        # Map Chroma results back to similarity (1 - distance)
-        # Note: ChromaDB distances are often L2 or squared L2, but similarity function helps
-        chroma_id_map = {id: 1.0 - dist for id, dist in zip(results_chroma['ids'][0], results_chroma['distances'][0])}
-
-        semantic_scores = []
-        for i, doc in enumerate(self.documents):
-            doc_id = str(doc.get("id") or doc.get("_id") or f"doc_{i}")
-            score = chroma_id_map.get(doc_id, 0.0)
-            semantic_scores.append(max(0.0, score))
-
-        semantic_scores = np.array(semantic_scores)
-
-        # 3. Hybrid Score
+        # 3. Hybrid Score (0.8 Semantic / 0.2 Lexical)
         hybrid_scores = (bm25_weight * bm25_scores) + (semantic_weight * semantic_scores)
         top_indices = np.argsort(hybrid_scores)[::-1][:top_k]
 

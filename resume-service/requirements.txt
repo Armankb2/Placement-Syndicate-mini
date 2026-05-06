@@ -3,7 +3,6 @@ uvicorn
 python-multipart
 pika
 pymongo
-chromadb
 sentence-transformers
 rank-bm25
 pypdf

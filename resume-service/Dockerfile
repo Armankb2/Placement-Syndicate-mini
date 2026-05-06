@@ -2,17 +2,21 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install build dependencies for chromadb (hnswlib)
+# Minimal dependencies for a lean runtime
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Render free tier uses $PORT environment variable
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}
+# Optimization: Pre-download the model into the image during build 
+# This prevents RAM spikes during container startup
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
+# Use $PORT provided by Render
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000} --workers 1 --limit-concurrency 2
