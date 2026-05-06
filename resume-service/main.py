@@ -24,8 +24,7 @@ app.add_middleware(
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 
-# Initialize Searcher & LLM using Original Repo Configs
-# This uses ChromaDB for persistent vector storage as requested
+# Initialize Searcher & LLM
 searcher = HybridSearcher()
 llm_client = LLMClient()
 
@@ -45,12 +44,12 @@ def extract_text(file_bytes: bytes, file_ext: str) -> str:
         print(f"Error extracting text: {e}")
         return None
 
+@app.get("/api/resume/ping")
+async def ping():
+    return {"status": "UP", "service": "Resume AI Service"}
+
 @app.post("/api/resume/upload")
 async def upload_resume(file: UploadFile = File(...)):
-    """
-    Handles resume upload and analysis synchronously for free-tier compatibility.
-    Matches original project logic for processing.
-    """
     allowed_extensions = {".pdf", ".docx"}
     file_ext = os.path.splitext(file.filename)[1].lower()
 
@@ -72,7 +71,6 @@ async def upload_resume(file: UploadFile = File(...)):
             advice = "**No Matching Experiences Found**\n\nNo interview experiences shared yet."
             top_matches = []
         else:
-            # Original project weights: 0.2 Lexical / 0.8 Semantic
             searcher.fit(experiences, ["companyName", "role", "quetions", "tips"])
             top_matches = searcher.search(
                 resume_text,
@@ -126,16 +124,28 @@ async def get_resume_feedback(filename: str):
 async def get_similar_companies(company_name: str, limit: int = 3):
     """
     Finds companies with similar interview patterns.
-    Ported directly from original main.py.
+    Enhanced with robust matching and error reporting.
     """
     try:
+        # Sanitize input
+        target_company = company_name.strip()
+        print(f"Searching similar companies for: {target_company}")
+
         client = MongoClient(MONGO_URI)
         db = client["experiencedb"]
-        target_exps = list(db["experience"].find({"companyName": {"$regex": f"^{company_name}$", "$options": "i"}}))
+        
+        # Use case-insensitive exact match
+        target_exps = list(db["experience"].find({"companyName": {"$regex": f"^{target_company}$", "$options": "i"}}))
 
         if not target_exps:
-            raise HTTPException(status_code=404, detail=f"Company '{company_name}' not found.")
+            # Try a broader search if exact match fails
+            target_exps = list(db["experience"].find({"companyName": {"$regex": target_company, "$options": "i"}}))
+            
+        if not target_exps:
+            print(f"No experiences found for company: {target_company}")
+            return {"targetCompany": target_company, "similar": [], "message": "No experiences found for this company."}
 
+        # Original project weights: 0.2 Lexical / 0.8 Semantic
         query_text = " ".join([f"{e.get('role', '')} {e.get('quetions', '')} {e.get('tips', '')}" for e in target_exps])
         all_experiences = list(db["experience"].find())
         
@@ -145,17 +155,28 @@ async def get_similar_companies(company_name: str, limit: int = 3):
         company_scores = {}
         for r in results:
             name = r["document"]["companyName"]
-            if name.lower() == company_name.lower(): continue
+            # Skip the target company itself
+            if name.lower() == target_company.lower():
+                continue
+            
             if name not in company_scores or r["score"] > company_scores[name]["score"]:
                 company_scores[name] = {
                     "companyName": name,
-                    "similarityScore": round(r["score"], 3)
+                    "similarityScore": round(r["score"], 3),
+                    "semanticScore": round(r.get("semantic_score", 0), 3),
+                    "keywordScore": round(r.get("lexical_score", 0), 3)
                 }
 
         similar_list = sorted(company_scores.values(), key=lambda x: x["similarityScore"], reverse=True)[:limit]
-        return {"targetCompany": company_name, "similar": similar_list}
+        return {
+            "targetCompany": target_company, 
+            "similar": similar_list,
+            "count": len(target_exps)
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error in similar companies search: {e}")
+        # Return empty list instead of 404 to avoid frontend error
+        return {"targetCompany": company_name, "similar": [], "error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn
