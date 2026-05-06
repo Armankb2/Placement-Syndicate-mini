@@ -10,7 +10,7 @@ class LLMClient:
     def __init__(self):
         """Initializes the Groq client with the configured model."""
         self.api_key = os.getenv("GROQ_API_KEY")
-        self.model = os.getenv("LLM_MODEL", "llama3-70b-8192")
+        self.model = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 
         if not self.api_key or self.api_key == "your_groq_api_key_here":
             print("⚠️ GROQ_API_KEY not found in .env. LLM will be disabled.")
