@@ -47,7 +47,9 @@ class HybridSearcher:
         self,
         query: str,
         top_k: int = 3,
-        min_score: float = 0.0
+        min_score: float = 0.0,
+        bm25_weight: float = 0.5,
+        semantic_weight: float = 0.5
     ):
         if not self.documents:
             return []
@@ -71,7 +73,9 @@ class HybridSearcher:
 
             results.append({
                 "document": doc,
-                "score": float(score)
+                "score": float(score),
+                "lexical_score": float(score),
+                "semantic_score": 0.0
             })
 
         return results
