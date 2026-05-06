@@ -11,7 +11,7 @@ export const uploadResume = (file) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  return resumeApi.post("/upload", formData, {
+  return resumeApi.post("upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -19,11 +19,11 @@ export const uploadResume = (file) => {
 };
 
 export const getResumeFeedback = (filename) => {
-  return resumeApi.get(`/feedback/${encodeURIComponent(filename)}`);
+  return resumeApi.get(`feedback/${encodeURIComponent(filename)}`);
 };
 
 export const getSimilarCompanies = (companyName, limit = 3) => {
-  return resumeApi.get(`/similar/${encodeURIComponent(companyName)}?limit=${limit}`);
+  return resumeApi.get(`similar/${encodeURIComponent(companyName)}?limit=${limit}`);
 };
 
 export default resumeApi;
