@@ -5,7 +5,7 @@ services:
     plan: free
     region: ohio
     dockerContext: unified-backend
-    dockerFilePath: unified-backend/Dockerfile
+    dockerfilePath: unified-backend/Dockerfile
     envVars:
       - key: PORT
         value: 8080
@@ -32,7 +32,7 @@ services:
     plan: free
     region: ohio
     dockerContext: resume-service
-    dockerFilePath: resume-service/Dockerfile
+    dockerfilePath: resume-service/Dockerfile
     envVars:
       - key: MONGO_URI
         sync: false
