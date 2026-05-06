@@ -3,10 +3,8 @@ uvicorn
 python-multipart
 pika
 pymongo
-sentence-transformers
 rank-bm25
 pypdf
 python-docx
-scikit-learn
 groq
 python-dotenv
