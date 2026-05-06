@@ -140,7 +140,7 @@ const ResumeUploadPage = () => {
             <div className="matches-grid">
               {feedback.matches.map((match, i) => (
                 <div key={i} className="match-tag">
-                  {match.company} / Match {Math.round(match.score)}%
+                  {match.company} / Match {Math.round(match.score * 100)}%
                 </div>
               ))}
             </div>
