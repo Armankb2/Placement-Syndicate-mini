@@ -3,13 +3,13 @@ import json
 from groq import Groq
 from dotenv import load_dotenv
 
-# Load environment variables (API Key)
 load_dotenv(override=True)
 
 class LLMClient:
     def __init__(self):
         """Initializes the Groq client with the configured model."""
         self.api_key = os.getenv("GROQ_API_KEY")
+        # Using a supported model (llama-3.3-70b-versatile) instead of decommissioned llama3-70b
         self.model = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 
         if not self.api_key or self.api_key == "your_groq_api_key_here":
@@ -22,32 +22,10 @@ class LLMClient:
         """
         Generates grounded, factual career advice based on resume and DB matches.
         
-        Critical design rule: The LLM must ONLY reference data from the provided
-        matches. It must never invent skills, companies, or questions not in the data.
+        Matches original project logic: strictly factual, grounded in database data.
         """
         if not self.client:
-            feedback = "### 🤖 Rule-Based Analysis (LLM Offline)\n\n"
-            feedback += "You can enable full AI analysis by adding a `GROQ_API_KEY` to your `.env` file. In the meantime, here is a summary based on your top matches:\n\n"
-            
-            for match in matches:
-                doc = match["document"]
-                company = doc.get("companyName", "Unknown")
-                score = match["score"]
-                feedback += f"#### 🎯 {company} (Match Score: {score:.2f})\n"
-                
-                questions = doc.get("quetions", "Not provided")
-                if questions != "Not provided":
-                    feedback += f"- **Key Topics to Prepare:** {questions}\n"
-                
-                tips = doc.get("tips", "Not provided")
-                if tips != "Not provided":
-                    feedback += f"- **Candidate Tip:** \"{tips}\"\n"
-                
-                feedback += "\n"
-            
-            feedback += "### 💡 Preparation Strategy\n"
-            feedback += "Based on these matches, you should focus on the common technical topics listed above. Practice explaining your projects in the context of these specific company requirements."
-            return feedback
+            return "LLM Advisor is offline. Please add your GROQ_API_KEY to the .env file."
 
         if not matches:
             return (
@@ -72,7 +50,7 @@ class LLMClient:
                 "keyword_score": f"{match.get('lexical_score', 0):.2f}",
             })
 
-        # The grounded, factual system prompt
+        # The grounded, factual system prompt (Original Repo Style)
         system_prompt = """You are a technical career advisor at 'Placement Syndicate'.
 
 STRICT RULES — VIOLATION IS NOT ACCEPTABLE:
@@ -127,29 +105,9 @@ Similarity score: [highest score]. [If score < 0.35: Results may not be highly a
                     {"role": "user", "content": user_prompt}
                 ],
                 model=self.model,
-                temperature=0.2,   # Low temp = factual, deterministic, less hallucination
+                temperature=0.2,   
                 max_tokens=900,
             )
             return chat_completion.choices[0].message.content
         except Exception as e:
             return f"Error from LLM Advisor: {e}"
-
-
-if __name__ == "__main__":
-    # Test block
-    client = LLMClient()
-    test_matches = [
-        {
-            "document": {
-                "companyName": "Google",
-                "role": "SDE-1",
-                "difficultyLevel": "HARD",
-                "quetions": "System design, DSA on arrays and graphs, behavioral STAR format",
-                "tips": "Practice LeetCode Hard, know your resume projects deeply"
-            },
-            "score": 0.78,
-            "semantic_score": 0.80,
-            "lexical_score": 0.76
-        }
-    ]
-    print(client.generate_feedback("I am a Java developer with Spring Boot experience", test_matches))
