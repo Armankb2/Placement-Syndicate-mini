@@ -27,7 +27,6 @@ public class UserService {
      */
     public UserResponse getUserProfile(String id) {
         User user = userRepository.findById(id)
-                .or(() -> userRepository.findByKeyCloakId(id))
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
         return mapToResponse(user);
     }
