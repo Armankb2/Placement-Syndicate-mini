@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: placement-backend
+    env: docker
+    plan: free
+    region: ohio
+    dockerContext: unified-backend
+    dockerFilePath: unified-backend/Dockerfile
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+
+  - type: web
+    name: resume-ai-service
+    env: docker
+    plan: free
+    region: ohio
+    dockerContext: resume-service
+    dockerFilePath: resume-service/Dockerfile
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

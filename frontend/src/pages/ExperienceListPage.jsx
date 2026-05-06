@@ -5,7 +5,7 @@ import {
   deleteExperience,
   deleteExperienceByAdmin,
 } from "../services/api";
-import { getSimilarCompanies } from "../services/resumeService";
+import { getSimilarCompanies } from "../services/resumeApi";
 import { useAuth } from "../context/AuthContext";
 import "./ExperienceListPage.css";
 

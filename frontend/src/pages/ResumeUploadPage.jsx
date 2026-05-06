@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { uploadResume, getResumeFeedback } from "../services/resumeService";
+import { uploadResume, getResumeFeedback } from "../services/resumeApi";
 import { useAuth } from "../context/AuthContext";
 import { getShortName } from "../utils/displayName";
 import "./ResumeUploadPage.css";
