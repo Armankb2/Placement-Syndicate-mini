@@ -124,16 +124,23 @@ const ResumeUploadPage = () => {
           <section className="glass-card feedback-section animate-slide-in">
             <h2 className="feedback-title">AI advisor feedback</h2>
             <div className="feedback-scroll-area">
-              {feedback.advice.split("\n").map((line, i) => (
-                <p key={i} className={line.startsWith("###") ? "feedback-header" : "feedback-text"}>
-                  {line.replace("###", "")}
-                </p>
-              ))}
+              {feedback.advice.split("\n").map((line, i) => {
+                if (line.startsWith("###")) {
+                  return <h3 key={i} className="feedback-header">{line.replace("###", "").trim()}</h3>;
+                }
+                if (line.startsWith("- ")) {
+                  return <li key={i} className="feedback-list-item">{line.replace("- ", "").trim()}</li>;
+                }
+                if (line.startsWith("  - ")) {
+                  return <li key={i} className="feedback-list-item sub">{line.replace("  - ", "").trim()}</li>;
+                }
+                return line.trim() ? <p key={i} className="feedback-text">{line}</p> : <br key={i} />;
+              })}
             </div>
             <div className="matches-grid">
               {feedback.matches.map((match, i) => (
                 <div key={i} className="match-tag">
-                  {match.company} / Match {Math.round(match.score * 100)}%
+                  {match.company} / Match {Math.round(match.score)}%
                 </div>
               ))}
             </div>

@@ -108,6 +108,22 @@
   font-weight: 800;
 }
 
+.feedback-list-item {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+  margin-left: 1rem;
+  list-style-type: disc;
+}
+
+.feedback-list-item.sub {
+  margin-left: 2.5rem;
+  list-style-type: circle;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
 .feedback-text {
   margin: 0 0 12px;
   color: var(--text-muted);
