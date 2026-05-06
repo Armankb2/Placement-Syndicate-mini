@@ -14,6 +14,7 @@ class HybridSearcher:
         def extract_text(val):
             if isinstance(val, list):
                 parts = []
+
                 for item in val:
                     if isinstance(item, dict):
                         parts.extend(
@@ -21,6 +22,7 @@ class HybridSearcher:
                         )
                     else:
                         parts.append(str(item))
+
                 return " ".join(parts)
 
             return str(val)
@@ -41,7 +43,12 @@ class HybridSearcher:
 
         self.bm25 = BM25Okapi(tokenized_corpus)
 
-    def search(self, query: str, top_k: int = 3):
+    def search(
+        self,
+        query: str,
+        top_k: int = 3,
+        min_score: float = 0.0
+    ):
         if not self.documents:
             return []
 
@@ -58,6 +65,10 @@ class HybridSearcher:
         results = []
 
         for doc, score in ranked[:top_k]:
+
+            if score < min_score:
+                continue
+
             results.append({
                 "document": doc,
                 "score": float(score)
