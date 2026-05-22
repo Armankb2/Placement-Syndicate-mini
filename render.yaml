@@ -3,7 +3,7 @@ services:
     name: placement-backend
     runtime: docker
     plan: free
-    region: singapore
+    region: ohio
     dockerContext: unified-backend
     dockerfilePath: unified-backend/Dockerfile
     envVars:
@@ -49,7 +49,7 @@ services:
     name: resume-ai-service
     runtime: docker
     plan: free
-    region: singapore
+    region: ohio
     dockerContext: resume-service
     dockerfilePath: resume-service/Dockerfile
     envVars:
@@ -62,7 +62,7 @@ services:
     name: user-service
     runtime: node
     plan: free
-    region: singapore
+    region: ohio
     rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
@@ -76,7 +76,7 @@ services:
     name: api-gateway
     runtime: node
     plan: free
-    region: singapore
+    region: ohio
     rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
@@ -90,7 +90,7 @@ services:
     name: eurekha
     runtime: node
     plan: free
-    region: singapore
+    region: ohio
     rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
@@ -104,7 +104,7 @@ services:
     name: discovery-service
     runtime: node
     plan: free
-    region: singapore
+    region: ohio
     rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
@@ -118,7 +118,7 @@ services:
     name: experience-service
     runtime: node
     plan: free
-    region: singapore
+    region: ohio
     rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
@@ -132,7 +132,7 @@ services:
     name: mentorship-service
     runtime: node
     plan: free
-    region: singapore
+    region: ohio
     rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
