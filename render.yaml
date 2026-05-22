@@ -1,7 +1,7 @@
 services:
   - type: web
     name: placement-backend
-    env: docker
+    runtime: docker
     plan: free
     region: ohio
     dockerContext: unified-backend
@@ -26,7 +26,7 @@ services:
 
   - type: web
     name: notification-service
-    env: docker
+    runtime: docker
     plan: free
     region: ohio
     dockerContext: notification-service
@@ -47,7 +47,7 @@ services:
 
   - type: web
     name: resume-ai-service
-    env: docker
+    runtime: docker
     plan: free
     region: ohio
     dockerContext: resume-service
@@ -60,10 +60,10 @@ services:
 
   - type: web
     name: user-service
-    env: node
+    runtime: node
     plan: free
     region: ohio
-    rootDirectory: dummy-services
+    rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -74,10 +74,10 @@ services:
 
   - type: web
     name: api-gateway
-    env: node
+    runtime: node
     plan: free
     region: ohio
-    rootDirectory: dummy-services
+    rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -88,10 +88,10 @@ services:
 
   - type: web
     name: eurekha
-    env: node
+    runtime: node
     plan: free
     region: ohio
-    rootDirectory: dummy-services
+    rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -102,10 +102,10 @@ services:
 
   - type: web
     name: discovery-service
-    env: node
+    runtime: node
     plan: free
     region: ohio
-    rootDirectory: dummy-services
+    rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -116,10 +116,10 @@ services:
 
   - type: web
     name: experience-service
-    env: node
+    runtime: node
     plan: free
     region: ohio
-    rootDirectory: dummy-services
+    rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -130,10 +130,10 @@ services:
 
   - type: web
     name: mentorship-service
-    env: node
+    runtime: node
     plan: free
     region: ohio
-    rootDirectory: dummy-services
+    rootDir: dummy-services
     buildCommand: npm install
     startCommand: npm start
     envVars:
