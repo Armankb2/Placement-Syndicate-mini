@@ -37,7 +37,7 @@ services:
       - key: MONGODB_URI
         sync: false
       - key: MAIL_HOST
-        value: smtp.gmail.com
+        value: smtp-relay.brevo.com
       - key: MAIL_PORT
         value: 587
       - key: MAIL_USERNAME
@@ -57,3 +57,87 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
+
+  - type: web
+    name: user-service
+    env: node
+    plan: free
+    region: ohio
+    rootDirectory: dummy-services
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SERVICE_NAME
+        value: user-service
+
+  - type: web
+    name: api-gateway
+    env: node
+    plan: free
+    region: ohio
+    rootDirectory: dummy-services
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SERVICE_NAME
+        value: api-gateway
+
+  - type: web
+    name: eurekha
+    env: node
+    plan: free
+    region: ohio
+    rootDirectory: dummy-services
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SERVICE_NAME
+        value: eurekha
+
+  - type: web
+    name: discovery-service
+    env: node
+    plan: free
+    region: ohio
+    rootDirectory: dummy-services
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SERVICE_NAME
+        value: discovery-service
+
+  - type: web
+    name: experience-service
+    env: node
+    plan: free
+    region: ohio
+    rootDirectory: dummy-services
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SERVICE_NAME
+        value: experience-service
+
+  - type: web
+    name: mentorship-service
+    env: node
+    plan: free
+    region: ohio
+    rootDirectory: dummy-services
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SERVICE_NAME
+        value: mentorship-service

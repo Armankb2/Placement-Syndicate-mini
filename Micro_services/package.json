@@ -1,0 +1,12 @@
+{
+  "name": "dummy-service",
+  "version": "1.0.0",
+  "description": "Dummy service for status checking",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
