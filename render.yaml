@@ -21,6 +21,25 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: NOTIFICATION_SERVICE_URL
+        value: http://notification-service:8080
+
+  - type: web
+    name: notification-service
+    env: docker
+    plan: free
+    region: ohio
+    dockerContext: notification-service
+    dockerfilePath: notification-service/Dockerfile
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: MONGODB_URI
+        sync: false
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD

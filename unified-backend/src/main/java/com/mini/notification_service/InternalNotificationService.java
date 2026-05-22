@@ -2,84 +2,104 @@ package com.mini.notification_service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class InternalNotificationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalNotificationService.class);
 
-    private final EmailService emailService;
+    private final RestTemplate restTemplate = new RestTemplate();
     private final com.mini.user_service.Service.UserService userService;
-    private final NotificationRepository notificationRepository;
 
-    public InternalNotificationService(EmailService emailService, com.mini.user_service.Service.UserService userService, NotificationRepository notificationRepository) {
-        this.emailService = emailService;
+    @Value("${app.notification-service.url}")
+    private String notificationServiceUrl;
+
+    public InternalNotificationService(com.mini.user_service.Service.UserService userService) {
         this.userService = userService;
-        this.notificationRepository = notificationRepository;
     }
 
     @Async
     public void sendNewExperienceNotification(String companyName) {
-        LOGGER.info("#### -> Sending new experience notification for -> {}", companyName);
+        LOGGER.info("#### -> Forwarding new experience notification for -> {} to {}", companyName, notificationServiceUrl);
         try {
             List<com.mini.user_service.Dto.UserResponse> users = userService.getAllUsers();
+            List<Map<String, String>> userDtos = new ArrayList<>();
             for (com.mini.user_service.Dto.UserResponse user : users) {
-                emailService.sendEmail(user.getEmail(), "New Experience Added", "A new interview experience has been shared for company: " + companyName);
-                
-                Notification n = new Notification();
-                n.setUserId(user.getId());
-                n.setMessage("New Experience Added for: " + companyName);
-                n.setType("EXPERIENCE");
-                n.setTimestamp(java.time.LocalDateTime.now());
-                notificationRepository.save(n);
+                Map<String, String> u = new HashMap<>();
+                u.put("id", user.getId());
+                u.put("email", user.getEmail());
+                userDtos.add(u);
             }
+
+            Map<String, Object> request = new HashMap<>();
+            request.put("companyName", companyName);
+            request.put("users", userDtos);
+
+            restTemplate.postForObject(notificationServiceUrl + "/api/notifications/send-experience", request, Void.class);
         } catch (Exception e) {
-            LOGGER.error("Failed to notify users about new experience: {}", e.getMessage());
+            LOGGER.error("Failed to forward new experience notification: {}", e.getMessage());
         }
     }
 
     @Async
     public void sendOtpNotification(String email, String otp) {
-        LOGGER.info("#### -> Sending OTP notification to -> {}", email);
+        LOGGER.info("#### -> Forwarding OTP notification to -> {} to {}", email, notificationServiceUrl);
         try {
-            emailService.sendEmail(email, "Your Password Reset OTP", "Your OTP is: " + otp + ". Valid for 10 minutes.");
+            Map<String, String> request = new HashMap<>();
+            request.put("email", email);
+            request.put("otp", otp);
+
+            restTemplate.postForObject(notificationServiceUrl + "/api/notifications/send-otp", request, Void.class);
         } catch (Exception e) {
-            LOGGER.error("Failed to send OTP notification: {}", e.getMessage());
+            LOGGER.error("Failed to forward OTP notification: {}", e.getMessage());
         }
     }
 
     @Async
     public void sendEnrollmentNotification(String studentName, String mentorName, String domain, String studentId, String mentorId) {
-        LOGGER.info("#### -> Sending enrollment notification for student -> {}", studentName);
+        LOGGER.info("#### -> Forwarding enrollment notification for student -> {} to {}", studentName, notificationServiceUrl);
         try {
-            // Send to Student
-            emailService.sendEmail(studentId, "Enrollment Confirmed", 
-                String.format("Hi %s, you have successfully enrolled in the %s program with %s.", studentName, domain, mentorName));
-            
-            Notification studentNotif = new Notification();
-            studentNotif.setUserId(studentId);
-            studentNotif.setMessage(String.format("Enrolled in %s with %s", domain, mentorName));
-            studentNotif.setType("ENROLLMENT");
-            studentNotif.setTimestamp(java.time.LocalDateTime.now());
-            notificationRepository.save(studentNotif);
-            
-            // Send to Mentor
-            emailService.sendEmail(mentorId, "New Student Enrolled", 
-                String.format("Hi %s, %s has enrolled in your %s program.", mentorName, studentName, domain));
+            String studentEmail = "";
+            try {
+                studentEmail = userService.getUserProfile(studentId).getEmail();
+            } catch (Exception e) {
+                LOGGER.warn("Could not find email for student ID: {}, fallback to studentId if it looks like email", studentId);
+                if (studentId != null && studentId.contains("@")) {
+                    studentEmail = studentId;
+                }
+            }
 
-            Notification mentorNotif = new Notification();
-            mentorNotif.setUserId(mentorId);
-            mentorNotif.setMessage(String.format("%s enrolled in your %s program", studentName, domain));
-            mentorNotif.setType("ENROLLMENT");
-            mentorNotif.setTimestamp(java.time.LocalDateTime.now());
-            notificationRepository.save(mentorNotif);
+            String mentorEmail = "";
+            try {
+                mentorEmail = userService.getUserProfile(mentorId).getEmail();
+            } catch (Exception e) {
+                LOGGER.warn("Could not find email for mentor ID: {}, fallback to mentorId if it looks like email", mentorId);
+                if (mentorId != null && mentorId.contains("@")) {
+                    mentorEmail = mentorId;
+                }
+            }
 
+            Map<String, String> request = new HashMap<>();
+            request.put("studentName", studentName);
+            request.put("studentEmail", studentEmail);
+            request.put("mentorName", mentorName);
+            request.put("mentorEmail", mentorEmail);
+            request.put("domain", domain);
+            request.put("studentId", studentId);
+            request.put("mentorId", mentorId);
+
+            restTemplate.postForObject(notificationServiceUrl + "/api/notifications/send-enrollment", request, Void.class);
         } catch (Exception e) {
-            LOGGER.error("Failed to process enrollment notification: {}", e.getMessage());
+            LOGGER.error("Failed to forward enrollment notification: {}", e.getMessage());
         }
     }
 }

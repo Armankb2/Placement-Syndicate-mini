@@ -1,197 +1,88 @@
-import pika
-import json
-import os
-import io
-import time
-import base64
-from pymongo import MongoClient
-from hybrid_search import HybridSearcher
-import pypdf
-import docx
+import re
+import nltk
+from typing import List, Dict, Set
 
-# Configuration
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-QUEUE_NAME = "resume_processing"
-
-# Minimum hybrid score for a match to be considered "relevant"
-# Below this threshold, the match is too weak to pass to the LLM
-MIN_MATCH_SCORE = 0.25
-
-# Initialize Searcher
-searcher = HybridSearcher()
-
-def extract_text(file_bytes: bytes, file_ext: str) -> str:
-    """
-    Extracts text from PDF or DOCX file bytes held entirely in memory.
-    The bytes are never written to disk.
-    """
-    text = ""
-    try:
-        if file_ext == ".pdf":
-            reader = pypdf.PdfReader(io.BytesIO(file_bytes))
-            for page in reader.pages:
-                text += page.extract_text() + "\n"
-        elif file_ext == ".docx":
-            doc = docx.Document(io.BytesIO(file_bytes))
-            for para in doc.paragraphs:
-                text += para.text + "\n"
-        return text.strip()
-    except Exception as e:
-        print(f"Error extracting text: {e}")
-        return None
-
-from llm_client import LLMClient
-
-# Initialize LLM Client
-llm_client = LLMClient()
-
-def get_search_weights(corpus_size: int):
-    """
-    Returns (bm25_weight, semantic_weight) based on corpus size.
-
-    BM25 is unreliable on small corpora because term-frequency statistics
-    are meaningless with < 10 documents. On small datasets, semantic search
-    alone gives better signal.
-
-    Thresholds (tuned empirically):
-      < 5 docs  → heavy semantic bias (BM25 is noise)
-      5-15 docs → slight semantic preference
-      > 15 docs → balanced 50/50 (BM25 becomes reliable)
-    """
-    if corpus_size < 5:
-        print(f"  [weight] Corpus is tiny ({corpus_size} docs) — using semantic-heavy weights (0.2 BM25, 0.8 Semantic)")
-        return 0.2, 0.8
-    elif corpus_size < 15:
-        print(f"  [weight] Small corpus ({corpus_size} docs) — using balanced-semantic weights (0.35 BM25, 0.65 Semantic)")
-        return 0.35, 0.65
-    else:
-        print(f"  [weight] Large corpus ({corpus_size} docs) — using balanced weights (0.5 BM25, 0.5 Semantic)")
-        return 0.5, 0.5
-
-def generate_advice(resume_text, top_matches):
-    """Generates intelligent, AI-powered advice using the Groq LLM."""
-    if not top_matches:
-        return (
-            "**No Strong Matches Found**\n\n"
-            "Our database did not find interview experiences that closely match your "
-            f"profile (minimum required similarity: {MIN_MATCH_SCORE:.0%}). "
-            "This could mean:\n"
-            "- Your skill set is unique or specialized\n"
-            "- Our database doesn't have enough experiences yet for companies in your target area\n\n"
-            "**Tip:** Ask your peers to share their interview experiences on Placement Syndicate "
-            "so the database grows and matching improves for everyone."
-        )
-
-    # Delegate advice generation to the LLM Client
-    return llm_client.generate_feedback(resume_text, top_matches)
-
-def callback(ch, method, properties, body):
-    """Processes a message from the RabbitMQ queue."""
-    message = json.loads(body)
-    filename = message['filename']
-    file_ext  = message.get('file_ext', '.pdf')
-    file_b64  = message.get('file_b64')
-    print(f" [x] Received request for: {filename}")
-
-    # 1. Decode file bytes from base64 — stays entirely in memory, never on disk
-    if not file_b64:
-        print(f" [!] No file content in message for {filename}")
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        return
-
-    file_bytes = base64.b64decode(file_b64)
-
-    # 2. Extract Resume Text from in-memory bytes
-    resume_text = extract_text(file_bytes, file_ext)
-    if not resume_text:
-        print(f" [!] Failed to extract text from {filename}")
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        return
-
-    # 2. Connect to MongoDB and fetch experiences
-    client = MongoClient(MONGO_URI)
-    db = client["experiencedb"]
-    experiences = list(db["experience"].find())
-
-    if not experiences:
-        print(" [!] No experiences found in MongoDB. Skipping matching.")
-        db["resume_feedback"].insert_one({
-            "filename": filename,
-            "advice": (
-                "**Database Empty**\n\n"
-                "No interview experiences have been shared yet. "
-                "Be the first to add one!"
-            ),
-            "matches": [],
-            "timestamp": time.time(),
-            "status": "no_data"
-        })
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        return
-
-    corpus_size = len(experiences)
-    print(f"  [info] Corpus size: {corpus_size} experiences")
-
-    # 3. Determine weights based on corpus size (fixes BM25 bias on small datasets)
-    bm25_weight, semantic_weight = get_search_weights(corpus_size)
-
-    # 4. Perform Hybrid Search with corpus-aware weights and minimum score filter
-    searcher.fit(experiences, ["companyName", "role", "quetions", "tips", "rounds"])
-    top_matches = searcher.search(
-        resume_text,
-        top_k=3,
-        min_score=MIN_MATCH_SCORE,
-        bm25_weight=bm25_weight,
-        semantic_weight=semantic_weight
-    )
-
-    print(f"  [info] Found {len(top_matches)} match(es) above threshold {MIN_MATCH_SCORE}")
-    for m in top_matches:
-        print(f"    → {m['document'].get('companyName')} | score={m['score']:.3f} "
-              f"(BM25={m['lexical_score']:.3f}, Semantic={m['semantic_score']:.3f})")
-
-    # 5. Generate Advice (Gap Analysis) — only if there are qualified matches
-    advice = generate_advice(resume_text, top_matches)
-
-    # 6. Store Feedback in MongoDB
-    feedback_doc = {
-        "filename": filename,
-        "advice": advice,
-        "matches": [
-            {
-                "company": m["document"]["companyName"],
-                "score": m["score"],
-                "semantic_score": m.get("semantic_score", 0),
-                "keyword_score": m.get("lexical_score", 0)
-            }
-            for m in top_matches
-        ],
-        "corpus_size": corpus_size,
-        "weights_used": {"bm25": bm25_weight, "semantic": semantic_weight},
-        "timestamp": time.time(),
-        "status": "processed"
+# Lightweight skill database for role-aware matching
+SKILL_TAXONOMY = {
+    "backend": {
+        "Java", "Spring Boot", "Node.js", "Python", "Django", "Flask", "Go", "Microservices", 
+        "REST API", "gRPC", "PostgreSQL", "MySQL", "MongoDB", "Redis", "Kafka", "Docker", "Kubernetes"
+    },
+    "frontend": {
+        "React", "Vue", "Angular", "Next.js", "TailwindCSS", "JavaScript", "TypeScript", "HTML", "CSS", "SASS", "Redux"
+    },
+    "ml_ai": {
+        "Python", "PyTorch", "TensorFlow", "Scikit-Learn", "NLP", "Computer Vision", "Statistics", "Machine Learning", "Deep Learning", "Pandas", "NumPy"
     }
-    db["resume_feedback"].insert_one(feedback_doc)
-    print(f" [x] Advice stored for {filename}")
+}
 
-    # Acknowledge the message
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+# Synonym mapping
+SYNONYMS = {
+    "backend dev": "Backend Developer",
+    "backend developer": "Backend Developer",
+    "ml": "Machine Learning",
+    "ai": "Artificial Intelligence",
+    "dsa": "Data Structures and Algorithms",
+    "dbms": "Database Management System",
+    "rest api": "RESTful API",
+    "sql": "SQL Database"
+}
 
-def start_engine():
-    """Starts the NLP engine listener."""
-    print(f" [*] NLP Engine waiting for messages on '{QUEUE_NAME}'...")
-    try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
-        channel = connection.channel()
-        channel.queue_declare(queue=QUEUE_NAME, durable=True)
-        channel.basic_qos(prefetch_count=1)
-        channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback)
-        channel.start_consuming()
-    except Exception as e:
-        print(f"NLP Engine failed to connect: {e}")
+class NLPEngine:
+    def __init__(self):
+        # Basic stop words to avoid noise
+        self.stop_words = {"a", "an", "the", "in", "on", "at", "with", "for", "by", "about", "is", "are", "was", "were"}
 
-if __name__ == "__main__":
-    from hybrid_search import HybridSearcher
-    searcher = HybridSearcher()
-    start_engine()
+    def clean_text(self, text: str) -> str:
+        """Cleans and normalizes text for better matching."""
+        if not text:
+            return ""
+        text = text.lower()
+        # Remove special characters
+        text = re.sub(r'[^\w\s]', ' ', text)
+        # Normalize whitespace
+        text = " ".join(text.split())
+        return text
+
+    def extract_skills(self, text: str) -> Set[str]:
+        """Simple rule-based skill extraction from cleaned text."""
+        cleaned = self.clean_text(text)
+        found_skills = set()
+        
+        # Check against a broad list of technical terms (can be expanded)
+        all_tech = set()
+        for skills in SKILL_TAXONOMY.values():
+            all_tech.update([s.lower() for s in skills])
+        
+        # Also check synonyms
+        for syn, canonical in SYNONYMS.items():
+            if syn in cleaned:
+                found_skills.add(canonical)
+
+        # Word-based matching
+        words = set(cleaned.split())
+        for tech in all_tech:
+            if tech in cleaned: # handles multi-word skills like "spring boot"
+                found_skills.add(tech.title())
+                
+        return found_skills
+
+    def get_role_relevance(self, resume_skills: Set[str], role: str) -> float:
+        """Computes a relevance score based on role-specific skill overlap."""
+        role_key = role.lower().replace(" ", "_")
+        # Try to match role to taxonomy
+        target_role = None
+        if "backend" in role_key: target_role = "backend"
+        elif "frontend" in role_key: target_role = "frontend"
+        elif "ml" in role_key or "data scientist" in role_key: target_role = "ml_ai"
+        
+        if not target_role:
+            return 1.0 # Neutral if role is unknown
+            
+        required_skills = {s.lower() for s in SKILL_TAXONOMY[target_role]}
+        user_skills = {s.lower() for s in resume_skills}
+        
+        overlap = required_skills.intersection(user_skills)
+        if not required_skills: return 1.0
+        
+        return 1.0 + (len(overlap) / len(required_skills)) # Multiplier between 1.0 and 2.0
