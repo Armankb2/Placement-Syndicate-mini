@@ -28,7 +28,7 @@ services:
     name: notification-service
     runtime: docker
     plan: free
-    region: singapore
+    region: ohio
     dockerContext: notification-service
     dockerfilePath: notification-service/Dockerfile
     envVars:
