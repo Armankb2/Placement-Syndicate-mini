@@ -1,5 +1,7 @@
 package com.mini.unified.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -20,6 +23,8 @@ import java.util.Arrays;
 
 @Configuration
 public class UnifiedSecurityConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(UnifiedSecurityConfig.class);
 
     @Value("${app.jwt.secret}")
     private String secret;
@@ -37,9 +42,28 @@ public class UnifiedSecurityConfig {
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.decoder(jwtDecoder()))
+                        .authenticationEntryPoint(authenticationEntryPoint())
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            String authHeader = request.getHeader("Authorization");
+            String ip = request.getRemoteAddr();
+            String path = request.getRequestURI();
+            
+            logger.warn("Unauthorized request to {} from IP {}: {}. Token: {}", 
+                    path, ip, authException.getMessage(), 
+                    (authHeader != null && authHeader.length() > 15) ? authHeader.substring(0, 15) + "..." : authHeader);
+            
+            response.setHeader("WWW-Authenticate", "Bearer error=\"invalid_token\", error_description=\"" + authException.getMessage() + "\"");
+            response.setStatus(org.springframework.http.HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\"}");
+        };
     }
 
     @Bean

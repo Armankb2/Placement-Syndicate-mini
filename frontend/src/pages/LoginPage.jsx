@@ -1,14 +1,19 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./AuthPages.css";
 
 export default function LoginPage() {
   const { authenticated, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const searchParams = new URLSearchParams(location.search);
+  const isExpired = searchParams.get("expired") === "true";
+  const notificationMessage = location.state?.message || (isExpired ? "Your session has expired. Please sign in again." : null);
 
   if (authenticated) {
     return <Navigate to="/" replace />;
@@ -27,6 +32,7 @@ export default function LoginPage() {
       await login(form);
       navigate("/");
     } catch (err) {
+      console.error("Login failed:", err);
       setError(err.response?.data?.message || "Invalid email or password.");
     } finally {
       setSubmitting(false);
@@ -54,6 +60,7 @@ export default function LoginPage() {
             Sign in to continue your journey.
           </p>
 
+          {notificationMessage && !error && <div className="info-message auth-info">{notificationMessage}</div>}
           {error && <div className="error-message auth-error">{error}</div>}
 
           <form className="auth-form" onSubmit={handleSubmit}>

@@ -5,6 +5,8 @@ import com.mini.user_service.Dto.UserResponse;
 import com.mini.user_service.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -19,14 +21,23 @@ public class UserController {
 
     /**
      * Returns the currently authenticated user's profile.
-     * The API Gateway validates the JWT and injects X-User-Id into the request headers
-     * before forwarding here — so we just read that header.
+     * Resolves user ID from either X-User-Id header or the validated JWT.
      */
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMyProfile(
-            @RequestHeader("X-User-Id") String userId
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(value = "X-User-Id", required = false) String userId
     ) {
-        return ResponseEntity.ok(userService.getUserProfile(userId));
+        String resolvedId = userId;
+        if (resolvedId == null || resolvedId.isBlank()) {
+            if (jwt != null) {
+                resolvedId = jwt.getSubject();
+            }
+        }
+        if (resolvedId == null || resolvedId.isBlank()) {
+            throw new RuntimeException("Authenticated user id is missing");
+        }
+        return ResponseEntity.ok(userService.getUserProfile(resolvedId));
     }
 
     @GetMapping("/{userid}")

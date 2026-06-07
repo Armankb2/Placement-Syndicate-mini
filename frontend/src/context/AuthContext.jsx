@@ -6,9 +6,44 @@ const AuthContext = createContext(null);
 const TOKEN_KEY = "placement_token";
 const USER_KEY = "placement_user";
 
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const decoded = JSON.parse(jsonPayload);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp * 1000 < Date.now();
+  } catch (e) {
+    return true;
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
+  const [token, setToken] = useState(() => {
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (storedToken && isTokenExpired(storedToken)) {
+      console.warn("Stored JWT token has expired. Clearing session.");
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
+    return storedToken;
+  });
+
   const [user, setUser] = useState(() => {
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (!storedToken || isTokenExpired(storedToken)) {
+      return null;
+    }
     const storedUser = localStorage.getItem(USER_KEY);
     return storedUser ? JSON.parse(storedUser) : null;
   });
@@ -16,6 +51,15 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     setAuthToken(token);
   }, [token]);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      console.warn("Unauthorized API call detected. Logging user out.");
+      logout();
+    };
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, []);
 
   const persistSession = (authResponse) => {
     const nextToken = authResponse.token;
@@ -30,11 +74,13 @@ export function AuthProvider({ children }) {
   const login = async (credentials) => {
     const response = await loginRequest(credentials);
     persistSession(response.data);
+    console.log("User successfully logged in:", response.data?.user?.email);
   };
 
   const signup = async (payload) => {
     const response = await signupRequest(payload);
     persistSession(response.data);
+    console.log("User successfully signed up:", response.data?.user?.email);
   };
 
   const logout = () => {
@@ -43,6 +89,7 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUser(null);
     setAuthToken(null);
+    console.log("User session cleared (logout).");
   };
 
   const hasRole = (role) => user?.roles?.includes(role) || user?.role === role;

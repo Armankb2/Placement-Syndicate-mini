@@ -6,11 +6,15 @@ import com.mini.user_service.Dto.RegisterRequest;
 import com.mini.user_service.Dto.UserResponse;
 import com.mini.user_service.Model.User;
 import com.mini.user_service.Repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -33,48 +37,54 @@ public class AuthService {
     }
 
     public AuthResponse signup(RegisterRequest request) {
-        // Email Validation
-        String email = request.getEmail();
-        if (!(email.endsWith("@gmail.com") || email.endsWith("@msrit.edu"))) {
-            throw new RuntimeException("Only @gmail.com or @msrit.edu emails are allowed");
-        }
+        try {
+            // Email Validation
+            String email = request.getEmail();
+            if (!(email.endsWith("@gmail.com") || email.endsWith("@msrit.edu"))) {
+                throw new RuntimeException("Only @gmail.com or @msrit.edu emails are allowed");
+            }
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User with same email already present");
-        }
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("User with same email already present");
+            }
 
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFirstname(request.getFirstname());
-        user.setLastname(request.getLastname());
-        user.setYear(request.getYear());
+            User user = new User();
+            user.setEmail(request.getEmail());
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setFirstname(request.getFirstname());
+            user.setLastname(request.getLastname());
+            user.setYear(request.getYear());
 
-        // Role-Based Logic
-        if (request.getAdminCode() != null && "ADMIN_SYNDICATE_2026".equals(request.getAdminCode())) {
-            user.setRole(com.mini.user_service.Model.UserRole.ADMIN);
-        } else if (request.getRole() != null) {
-            try {
-                com.mini.user_service.Model.UserRole role = com.mini.user_service.Model.UserRole.valueOf(request.getRole().toUpperCase());
-                user.setRole(role);
-                
-                if (role == com.mini.user_service.Model.UserRole.STUDENT) {
+            // Role-Based Logic
+            if (request.getAdminCode() != null && "ADMIN_SYNDICATE_2026".equals(request.getAdminCode())) {
+                user.setRole(com.mini.user_service.Model.UserRole.ADMIN);
+            } else if (request.getRole() != null) {
+                try {
+                    com.mini.user_service.Model.UserRole role = com.mini.user_service.Model.UserRole.valueOf(request.getRole().toUpperCase());
+                    user.setRole(role);
+                    
+                    if (role == com.mini.user_service.Model.UserRole.STUDENT) {
+                        user.setUsn(request.getUsn());
+                    } else if (role == com.mini.user_service.Model.UserRole.MENTOR || role == com.mini.user_service.Model.UserRole.TEACHER) {
+                        user.setDepartment(request.getDepartment());
+                        user.setDesignation(request.getDesignation());
+                    }
+                } catch (IllegalArgumentException e) {
+                    user.setRole(com.mini.user_service.Model.UserRole.STUDENT);
                     user.setUsn(request.getUsn());
-                } else if (role == com.mini.user_service.Model.UserRole.MENTOR || role == com.mini.user_service.Model.UserRole.TEACHER) {
-                    user.setDepartment(request.getDepartment());
-                    user.setDesignation(request.getDesignation());
                 }
-            } catch (IllegalArgumentException e) {
+            } else {
                 user.setRole(com.mini.user_service.Model.UserRole.STUDENT);
                 user.setUsn(request.getUsn());
             }
-        } else {
-            user.setRole(com.mini.user_service.Model.UserRole.STUDENT);
-            user.setUsn(request.getUsn());
-        }
 
-        User savedUser = userRepository.save(user);
-        return new AuthResponse(jwtService.generateToken(savedUser), userService.mapToResponse(savedUser));
+            User savedUser = userRepository.save(user);
+            logger.info("Signup success for user: {}", request.getEmail());
+            return new AuthResponse(jwtService.generateToken(savedUser), userService.mapToResponse(savedUser));
+        } catch (Exception e) {
+            logger.warn("Signup failure for user: {}. Reason: {}", request.getEmail(), e.getMessage());
+            throw e;
+        }
     }
 
     public void forgotPassword(String email) {
@@ -106,13 +116,19 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        try {
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new RuntimeException("Invalid email or password");
+            }
+
+            logger.info("Login success for user: {}", request.getEmail());
+            return new AuthResponse(jwtService.generateToken(user), userService.mapToResponse(user));
+        } catch (Exception e) {
+            logger.warn("Login failure for user: {}. Reason: {}", request.getEmail(), e.getMessage());
+            throw e;
         }
-
-        return new AuthResponse(jwtService.generateToken(user), userService.mapToResponse(user));
     }
 }

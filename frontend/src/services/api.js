@@ -1,10 +1,31 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL + "/api",,
+  baseURL: import.meta.env.VITE_API_BASE_URL + "/api",
 });
 
-// Attach JWT token to every request
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const decoded = JSON.parse(jsonPayload);
+    if (!decoded || !decoded.exp) return true;
+    return decoded.exp * 1000 < Date.now();
+  } catch (e) {
+    return true;
+  }
+}
+
+// Attach JWT token to every request (legacy utility)
 export function setAuthToken(token) {
   if (token) {
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -12,6 +33,55 @@ export function setAuthToken(token) {
     delete api.defaults.headers.common["Authorization"];
   }
 }
+
+// Request interceptor: check token expiration before sending request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("placement_token");
+    if (token) {
+      if (isTokenExpired(token)) {
+        console.warn("api: Intercepted request with expired token. Preventing request.");
+        
+        // Clear session and notify components
+        localStorage.removeItem("placement_token");
+        localStorage.removeItem("placement_user");
+        window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+
+        // Redirect to login page
+        if (!window.location.pathname.endsWith("/login")) {
+          window.location.href = "/login?expired=true";
+        }
+        
+        // Cancel the request
+        return Promise.reject(new axios.Cancel("Session expired. Please login again."));
+      }
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor: handle 401 response and redirect
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.warn("api: Intercepted 401 response. Redirecting to login.");
+      
+      // Clear session
+      localStorage.removeItem("placement_token");
+      localStorage.removeItem("placement_user");
+      window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+      
+      // Redirect
+      if (!window.location.pathname.endsWith("/login")) {
+        window.location.href = "/login?expired=true";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ─── User Service ───────────────────────────────────────────────
 

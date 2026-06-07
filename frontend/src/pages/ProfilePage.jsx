@@ -10,7 +10,13 @@ export default function ProfilePage() {
   useEffect(() => {
     getMyProfile()
       .then((res) => setProfile(res.data))
-      .catch((err) => setError(err.response?.data?.message || err.message))
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          setError("Your session has expired. Please sign in again.");
+        } else {
+          setError(err.response?.data?.message || err.message);
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
