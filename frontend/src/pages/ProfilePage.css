@@ -185,7 +185,7 @@
 /* Quick Stats Grid */
 .stats-dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 18px;
   width: 100%;
 }
@@ -576,7 +576,7 @@
 
 .skeleton-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 18px;
 }
 
@@ -684,8 +684,9 @@
 
 /* Mobile Responsiveness Breakpoints */
 @media (max-width: 980px) {
-  .stats-dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .stats-dashboard-grid,
+  .skeleton-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
   
   .profile-grid {
@@ -694,6 +695,11 @@
 }
 
 @media (max-width: 760px) {
+  .stats-dashboard-grid,
+  .skeleton-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .profile-hero-header {
     flex-direction: column;
     text-align: center;

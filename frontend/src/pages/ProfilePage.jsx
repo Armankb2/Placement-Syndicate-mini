@@ -54,12 +54,10 @@ export default function ProfilePage() {
               <div className="skeleton-line skeleton-subtitle pulse"></div>
               <div className="skeleton-line skeleton-meta pulse"></div>
             </div>
-            <div className="skeleton-actions pulse"></div>
           </div>
 
           {/* Skeleton Stats Grid */}
           <div className="skeleton-stats-grid">
-            <div className="skeleton-stat-card glass-skeleton pulse"></div>
             <div className="skeleton-stat-card glass-skeleton pulse"></div>
             <div className="skeleton-stat-card glass-skeleton pulse"></div>
             <div className="skeleton-stat-card glass-skeleton pulse"></div>
@@ -94,24 +92,15 @@ export default function ProfilePage() {
   }
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return "Not Available";
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return "Not Available";
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    });
-  };
-
-  const formatDateShort = (dateStr) => {
-    if (!dateStr) return "Not Available";
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return "Not Available";
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short"
-    });
+    const date = dateStr ? new Date(dateStr) : new Date();
+    const parsedDate = isNaN(date.getTime()) ? new Date() : date;
+    
+    const day = String(parsedDate.getDate()).padStart(2, '0');
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[parsedDate.getMonth()];
+    const year = parsedDate.getFullYear();
+    
+    return `${day} ${month} ${year}`;
   };
 
   const getProfileCompletion = () => {
@@ -132,7 +121,6 @@ export default function ProfilePage() {
   const roleVal = profile.role || "Member";
   const systemIdVal = profile.id ? `#${profile.id}` : "Not Available";
   const joinedDate = formatDate(profile.createdDate);
-  const joinedDateShort = formatDateShort(profile.createdDate);
   
   const getInitials = () => {
     const f = firstName?.[0]?.toUpperCase() || "";
@@ -178,21 +166,9 @@ export default function ProfilePage() {
                   <line x1="8" y1="2" x2="8" y2="6"></line>
                   <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-                Joined {joinedDateShort}
+                Joined {joinedDate}
               </span>
             </div>
-          </div>
-          <div className="profile-header-actions">
-            <button 
-              className="btn-small edit-profile-mock-btn" 
-              onClick={() => alert("Profile editing will be available in a future update.")}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: 6}}>
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-              </svg>
-              Edit Profile
-            </button>
           </div>
         </header>
 
@@ -226,25 +202,6 @@ export default function ProfilePage() {
             <div className="stat-card-body">
               <span className="stat-card-value">{enrollments.length}</span>
               <span className="stat-card-change neutral">Enrolled</span>
-            </div>
-          </div>
-
-          <div className="stat-dashboard-card glass glass-hover">
-            <div className="stat-card-header">
-              <span className="stat-card-icon resume-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
-              </span>
-              <span className="stat-card-title">Resume Uploads</span>
-            </div>
-            <div className="stat-card-body">
-              <span className="stat-card-value">1</span>
-              <span className="stat-card-change neutral">demo value</span>
             </div>
           </div>
 
