@@ -93,6 +93,27 @@ export default function ProfilePage() {
     );
   }
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Not Available";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "Not Available";
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  };
+
+  const formatDateShort = (dateStr) => {
+    if (!dateStr) return "Not Available";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "Not Available";
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short"
+    });
+  };
+
   const getProfileCompletion = () => {
     if (!profile) return 0;
     let score = 0;
@@ -103,6 +124,22 @@ export default function ProfilePage() {
     if (profile.id) score += 20;
     return score;
   };
+
+  const firstName = profile.firstname || "";
+  const lastName = profile.lastname || "";
+  const fullName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : "User";
+  const emailVal = profile.email || "Not Available";
+  const roleVal = profile.role || "Member";
+  const systemIdVal = profile.id ? `#${profile.id}` : "Not Available";
+  const joinedDate = formatDate(profile.createdDate);
+  const joinedDateShort = formatDateShort(profile.createdDate);
+  
+  const getInitials = () => {
+    const f = firstName?.[0]?.toUpperCase() || "";
+    const l = lastName?.[0]?.toUpperCase() || "";
+    return (f + l) || "U";
+  };
+  const initials = getInitials();
   const completion = getProfileCompletion();
 
   return (
@@ -113,15 +150,14 @@ export default function ProfilePage() {
         <header className="profile-hero-header glass">
           <div className="profile-avatar-gradient">
             <div className="profile-avatar-inner">
-              {profile.firstname?.[0]?.toUpperCase() || ""}
-              {profile.lastname?.[0]?.toUpperCase() || ""}
+              {initials}
             </div>
           </div>
           <div className="profile-header-info">
             <div className="profile-name-row">
-              <h1>{profile.firstname} {profile.lastname}</h1>
-              <span className={`profile-badge-tag ${profile.role?.toLowerCase()}`}>
-                {profile.role}
+              <h1>{fullName}</h1>
+              <span className={`profile-badge-tag ${roleVal.toLowerCase()}`}>
+                {roleVal}
               </span>
             </div>
             <p className="profile-welcome-text">
@@ -133,7 +169,7 @@ export default function ProfilePage() {
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                   <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
-                {profile.email}
+                {emailVal}
               </span>
               <span className="meta-item">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -142,14 +178,14 @@ export default function ProfilePage() {
                   <line x1="8" y1="2" x2="8" y2="6"></line>
                   <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-                Joined {new Date(profile.createdDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                Joined {joinedDateShort}
               </span>
             </div>
           </div>
           <div className="profile-header-actions">
             <button 
               className="btn-small edit-profile-mock-btn" 
-              onClick={() => alert("Edit Profile functionality is read-only (synced from Keycloak ID provider).")}
+              onClick={() => alert("Profile editing will be available in a future update.")}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: 6}}>
                 <path d="M12 20h9"></path>
@@ -208,7 +244,7 @@ export default function ProfilePage() {
             </div>
             <div className="stat-card-body">
               <span className="stat-card-value">1</span>
-              <span className="stat-card-change positive">AI advisor checked</span>
+              <span className="stat-card-change neutral">demo value</span>
             </div>
           </div>
 
@@ -247,33 +283,27 @@ export default function ProfilePage() {
             <div className="account-details-list">
               <div className="detail-item">
                 <span className="detail-label">First Name</span>
-                <span className="detail-value">{profile.firstname || "—"}</span>
+                <span className="detail-value">{firstName || "Not Available"}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Last Name</span>
-                <span className="detail-value">{profile.lastname || "—"}</span>
+                <span className="detail-value">{lastName || "Not Available"}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Email Address</span>
-                <span className="detail-value">{profile.email}</span>
+                <span className="detail-value">{emailVal}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Workspace Role</span>
-                <span className="detail-value role-badge-value">{profile.role}</span>
+                <span className="detail-value role-badge-value">{roleVal}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">System ID</span>
-                <span className="detail-value system-id-value">#{profile.id}</span>
+                <span className="detail-value system-id-value">{systemIdVal}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Account Created</span>
-                <span className="detail-value">
-                  {new Date(profile.createdDate).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
+                <span className="detail-value">{joinedDate}</span>
               </div>
             </div>
           </div>
@@ -356,7 +386,7 @@ export default function ProfilePage() {
                   <div className="timeline-marker default"></div>
                   <div className="timeline-content">
                     <h4>Joined Placement Syndicate</h4>
-                    <p>Created workspace profile on {new Date(profile.createdDate).toLocaleDateString()}.</p>
+                    <p>Created workspace profile. Joined date: {joinedDate}</p>
                   </div>
                 </div>
               </div>

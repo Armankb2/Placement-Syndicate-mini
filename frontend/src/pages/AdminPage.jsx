@@ -99,8 +99,7 @@ export default function AdminPage() {
               <div><strong>Last Name</strong><span>{lookupResult.lastname}</span></div>
               <div><strong>Email</strong><span>{lookupResult.email}</span></div>
               <div><strong>Role</strong><span>{lookupResult.role}</span></div>
-              <div><strong>Keycloak ID</strong><span>{lookupResult.keyCloakId}</span></div>
-              <div><strong>Created</strong><span>{lookupResult.createdDate}</span></div>
+              <div><strong>Created</strong><span>{lookupResult.createdDate || "Not Available"}</span></div>
             </div>
           )}
         </section>
