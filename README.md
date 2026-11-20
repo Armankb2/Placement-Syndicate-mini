@@ -2,7 +2,7 @@
 
 A full-stack microservices application with Spring Cloud Gateway, Eureka Service Discovery, Keycloak authentication, and React frontend.
 
-## Architecture
+## Architecture01
 
 - **Discovery Service** (Port 8100) - Eureka Server
 - **API Gateway** (Port 8200) - Spring Cloud Gateway with Keycloak OAuth2
