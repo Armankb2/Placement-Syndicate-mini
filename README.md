@@ -53,53 +53,69 @@ Students often lack concrete data on the interview process for target companies.
 
 ## 5. System Architecture
 
+
 ```mermaid
 flowchart TD
-    subgraph Frontend[Frontend (React/Vite)]
-        FE[Browser UI]
+
+    subgraph Frontend["Frontend — React / Vite"]
+        FE["Browser UI"]
     end
 
-    subgraph Auth[Keycloak]
-        KC[Keycloak Server]
+    subgraph Auth["Authentication — Keycloak"]
+        KC["Keycloak Server"]
     end
 
-    subgraph Unified[Unified Backend (Spring Boot)]
-        UB[REST API]
-        UB -->|JPA| PG[PostgreSQL]
-        UB -->|MongoTemplate| MG[MongoDB]
+    subgraph Unified["Unified Backend — Spring Boot"]
+        UB["REST API"]
+        PG[("PostgreSQL")]
+        MG[("MongoDB")]
+
+        UB -->|"JPA"| PG
+        UB -->|"MongoTemplate"| MG
     end
 
-    subgraph Resume[Resume Service (FastAPI)]
-        RS[REST API]
-        RS -->|HybridSearch| HS[Hybrid Search Engine]
-        HS -->|Embeddings| ST[SentenceTransformer (all‑MiniLM‑L6‑v2)]
-        RS -->|LLM| LG[Groq LLM (llama‑3.3‑70b‑versatile)]
-        RS -->|Mongo| MG2[MongoDB (resume_feedback)]
+    subgraph Resume["Resume Service — FastAPI"]
+        RS["REST API"]
+        HS["Hybrid Search Engine"]
+        ST["SentenceTransformer<br/>all-MiniLM-L6-v2"]
+        LG["Groq LLM<br/>llama-3.3-70b-versatile"]
+        MG2[("MongoDB<br/>resume_feedback")]
+
+        RS -->|"HybridSearch"| HS
+        HS -->|"Embeddings"| ST
+        RS -->|"LLM Inference"| LG
+        RS -->|"Feedback Storage"| MG2
     end
 
-    subgraph Notify[Notification Service (Spring Boot)]
-        NS[Email Service]
+    subgraph Notify["Notification Service — Spring Boot"]
+        NS["Email Service"]
     end
 
-    subgraph Brokers[Message Brokers]
-        KAF[Kafka]
-        RMQ[RabbitMQ]
-        ZK[Zookeeper]
+    subgraph Brokers["Message Brokers"]
+        KAF["Apache Kafka"]
+        RMQ["RabbitMQ"]
+        ZK["ZooKeeper"]
     end
 
-    FE -->|auth flow| KC
-    FE -->|API calls| UB
-    FE -->|API calls| RS
-    UB -->|publish| KAF
-    UB -->|publish| RMQ
-    NS -->|consume| RMQ
-    KAF -->|coordination| ZK
-    style Frontend fill:#212B36,stroke:#526274,color:#E6EDF3
-    style Auth fill:#183B3A,stroke:#526274,color:#E6EDF3
-    style Unified fill:#212B36,stroke:#526274,color:#E6EDF3
-    style Resume fill:#212B36,stroke:#526274,color:#E6EDF3
-    style Notify fill:#212B36,stroke:#526274,color:#E6EDF3
-    style Brokers fill:#212B36,stroke:#526274,color:#E6EDF3
+    FE -->|"Authentication Flow"| KC
+    FE -->|"API Calls"| UB
+    FE -->|"API Calls"| RS
+
+    UB -->|"Publish Events"| KAF
+    UB -->|"Publish Messages"| RMQ
+
+    RMQ -->|"Consume Messages"| NS
+    KAF -->|"Coordination"| ZK
+
+    classDef service fill:#212B36,stroke:#526274,color:#E6EDF3,stroke-width:1.5px
+    classDef external fill:#183B3A,stroke:#5F9E9A,color:#E6EDF3,stroke-width:1.5px
+    classDef database fill:#183B3A,stroke:#5F9E9A,color:#E6EDF3,stroke-width:1.5px
+    classDef broker fill:#263B55,stroke:#6B8FBF,color:#E6EDF3,stroke-width:1.5px
+
+    class FE,UB,RS,HS,ST,LG,NS service
+    class KC external
+    class PG,MG,MG2 database
+    class KAF,RMQ,ZK broker
 ```
 
 **Key points**
@@ -138,38 +154,51 @@ flowchart TD
 
 ---
 
+
 ## 7. AI/ML Model & Inference Pipeline
 
 ```mermaid
 flowchart LR
-    subgraph Ingestion[Resume Ingestion]
-        UP[Upload PDF/DOCX]
-        EXT[extract_text]
-    end
-    subgraph Search[Hybrid Search]
-        HS[HybridSearcher]
-        BM25[BM25 (rank‑bm25)]
-        EMB[SentenceTransformer (all‑MiniLM‑L6‑v2)]
-    end
-    subgraph LLM[LLM Generation]
-        LG[Groq LLM (llama‑3.3‑70b‑versatile)]
-        PROM[System + User Prompt]
-    end
-    subgraph Store[Persistence]
-        FB[resume_feedback collection]
+
+    subgraph Ingestion["Resume Ingestion"]
+        UP["Upload PDF / DOCX"]
+        EXT["extract_text"]
+        UP --> EXT
     end
 
-    UP --> EXT --> HS
-    HS -->|fit| BM25 & EMB
-    EXT -->|query| HS
-    HS -->|top‑k matches| LG
-    PROM --> LG
-    LG --> FB
-    style Ingestion fill:#212B36,stroke:#526274,color:#E6EDF3
-    style Search fill:#212B36,stroke:#526274,color:#E6EDF3
-    style LLM fill:#212B36,stroke:#526274,color:#E6EDF3
-    style Store fill:#212B36,stroke:#526274,color:#E6EDF3
+    subgraph Search["Hybrid Search Engine"]
+        HS["HybridSearcher"]
+        BM25["BM25<br/>rank-bm25"]
+        EMB["SentenceTransformer<br/>all-MiniLM-L6-v2"]
+
+        HS -->|"Lexical Search"| BM25
+        HS -->|"Semantic Search"| EMB
+    end
+
+    subgraph LLM["LLM Generation"]
+        PROM["System + User Prompt"]
+        LG["Groq LLM<br/>llama-3.3-70b-versatile"]
+
+        PROM --> LG
+    end
+
+    subgraph Store["Persistence"]
+        FB[("MongoDB<br/>resume_feedback")]
+    end
+
+    EXT -->|"Extracted Text"| HS
+    HS -->|"Top-K Matches"| LG
+    LG -->|"Generated Feedback"| FB
+
+    classDef process fill:#212B36,stroke:#526274,color:#E6EDF3,stroke-width:1.5px
+    classDef model fill:#183B3A,stroke:#5F9E9A,color:#E6EDF3,stroke-width:1.5px
+    classDef storage fill:#263B55,stroke:#6B8FBF,color:#E6EDF3,stroke-width:1.5px
+
+    class UP,EXT,HS,PROM process
+    class BM25,EMB,LG model
+    class FB storage
 ```
+
 
 * **Hybrid Search** – BM25 provides lexical relevance; Sentence‑Transformer embeddings capture semantic similarity. Scores are combined (`0.2 * BM25 + 0.8 * semantic`).
 * **LLM** – Groq endpoint `chat.completions.create` with deterministic temperature 0.2. The system prompt enforces *ground‑truth only* policy; the user prompt contains the raw resume excerpt and JSON‑encoded match context.
