@@ -388,4 +388,3 @@ All diagrams are included inline as Mermaid; they render directly on GitHub.
 
 ---
 
-*Prepared by Antigravity AI – a technical documentation assistant.*
